@@ -2,8 +2,8 @@
 
 **Corte de verificación:** 2026-08-08
 
-**Alcance:** primera factura de venta en habilitación; no cubre todavía firma,
-Schematron, envío SOAP ni aceptación real en DIAN.
+**Alcance:** primera factura de venta en habilitación con construcción, firma y
+validación local; no cubre todavía envío SOAP ni aceptación real en DIAN.
 
 ## Autoridad y versión
 
@@ -59,8 +59,9 @@ terceros, medio de pago, impuestos, totales y líneas con precio.
 El fixture `minimal-priced-line.json` es sintético y trazable; no contiene
 credenciales ni pretende ser un documento aceptado por la DIAN. El XML resultante
 pasó localmente `UBL-Invoice-2.1.xsd` de la caja FEV 1.9 verificada. El generador
-no añade una firma vacía: la segunda extensión se incorporará únicamente cuando
-el firmador XAdES-EPES exista. Pasar XSD no implica pasar Schematron ni
+no añade una firma vacía: `Fev19XadesSigner` incorpora la segunda extensión solo
+durante la firma. Tanto la versión sin firma como la firmada con un certificado
+efímero pasan el XSD oficial. Pasar XSD no implica pasar Schematron ni
 habilitación.
 
 ## Perfil de servicio observado
@@ -161,7 +162,7 @@ fecha. Contiene el documento original como `text/xml`/`UTF-8` y referencias a
 respuestas/eventos. Es parte del flujo de entrega al adquirente, pero no es el
 ZIP de transporte a DIAN y no bloquea la primera transmisión de habilitación.
 
-## Firma: política confirmada, firmador pendiente
+## Firma XAdES-EPES local
 
 La sección 6.5.10 confirma firma **XAdES-EPES**, canonicalización XML C14N
 `http://www.w3.org/TR/2001/REC-xml-c14n-20010315`, firma enveloped y grupos como
@@ -184,10 +185,24 @@ XML firmado no debe alterarse luego con pretty-print, indentación o cambios de
 espacios/control que invaliden el canon.
 
 La caja mezcla ejemplos históricos con identificadores `/v1/`, SHA-256 y
-ejemplos posteriores `/v2/` con SHA-384. Tribux registra el perfil `/v2/`
-verificado contra el PDF servido actualmente, pero todavía necesita construir y
-validar un fixture completo firmado con certificado exclusivamente de pruebas.
-Por eso no afirma aún compatibilidad XAdES ni aceptación en habilitación.
+ejemplos posteriores `/v2/` con SHA-384. El ejemplo reciente
+`ejemplificacionIBUA-3.xml` confirmó para el perfil `/v2/`:
+
+- `SignedInfo` con C14N inclusivo y RSA-SHA256;
+- referencias al documento, `KeyInfo` y `SignedProperties`, las tres con
+  digest SHA-384;
+- certificado público del firmante en `KeyInfo` y ruta de certificados en
+  `SigningCertificate`;
+- política v2 SHA-384 y rol `supplier`;
+- nombres del emisor X.509 en forma distinguida abreviada (`C`, `O`, `CN`, etc.).
+
+`Fev19XadesSigner` implementa ese perfil con DOM/libxml y OpenSSL. Las pruebas
+generan una clave RSA y un certificado efímeros, verifican de manera independiente
+la firma y los tres digest después de serializar y volver a cargar el XML, prueban
+errores de credenciales y validan la factura firmada contra el XSD oficial. No se
+versiona ninguna clave privada. Este resultado es validación local; falta usar un
+certificado real de habilitación y obtener una respuesta DIAN antes de afirmar
+compatibilidad operativa o aceptación.
 
 ## Inconsistencia pendiente en el consecutivo de archivos
 

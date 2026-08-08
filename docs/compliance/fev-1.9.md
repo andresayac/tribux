@@ -18,7 +18,7 @@
 | FEV19-FILE-001 | Anexo FEV 1.9, SHA `1b4022…` | 6.5.7, pp. 303-304 | Nombre XML por tipo/NIT/PT/año/consecutivo | pendiente | pendiente | pendiente | `research` |
 | FEV19-ZIP-001 | Anexo FEV 1.9, SHA `1b4022…` | 6.5.8, pp. 304-305 | Nombre ZIP y cardinalidad sync/async | pendiente | pendiente | pendiente | `research` |
 | FEV19-ATT-001 | Anexo FEV 1.9, SHA `1b4022…` | 6.4, pp. 263-270 | Contenedor de documento y eventos | pendiente | pendiente | pendiente | `research` |
-| FEV19-SIGN-001 | Anexo FEV 1.9, SHA `1b4022…` | 6.5.10, pp. 305-319 | XAdES-EPES, C14N, referencias y propiedades | pendiente | metadata de política | `DianSignaturePolicyTest` | `specified` |
+| FEV19-SIGN-001 | Anexo FEV 1.9 + Caja FE V19, SHA `1b4022…` / `2d6002…` | 6.5.10, pp. 305-319 + `ejemplificacionIBUA-3.xml` | XAdES-EPES, C14N inclusivo, RSA-SHA256 y tres referencias SHA-384 | `Fev19XadesSigner`, `SigningCredentials` | certificado RSA efímero en memoria | `Fev19XadesSignerTest`, `UnsignedInvoiceXmlGeneratorTest` | `locally_validated` |
 | FEV19-SIGN-002 | Política DIAN v2, SHA `74ca0c…` | 5.2, 7, 10.2, 12 | URL/digest SHA-384 de política y roles | `DianSignaturePolicy`, `DianSignerRole` | `policy-v2-sha384.json` | `DianSignaturePolicyTest` | `locally_validated` |
 
 `locally_validated` describe únicamente pruebas locales contra el fixture

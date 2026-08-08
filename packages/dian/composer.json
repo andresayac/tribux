@@ -6,6 +6,7 @@
   "require": {
     "ext-dom": "*",
     "ext-libxml": "*",
+    "ext-openssl": "*",
     "php": "^8.4 || ^8.5",
     "tribux/core": "dev-main"
   },

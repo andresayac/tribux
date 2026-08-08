@@ -37,7 +37,7 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 - [x] Identificar WSDL/endpoints de habilitación y producción.
 - [x] Documentar métodos SOAP necesarios para la primera factura.
 - [x] Confirmar algoritmo y composición de CUFE.
-- [ ] Confirmar perfil completo de firma y canonicalización (XAdES-EPES, C14N y política/hash v2 confirmados; fixture firmado pendiente).
+- [x] Confirmar perfil local de firma y canonicalización (XAdES-EPES, C14N inclusivo, RSA-SHA256, tres referencias SHA-384 y política v2).
 - [x] Documentar ZIP/naming/AttachedDocument si aplica al flujo.
 - [x] Crear matriz `requisito -> fuente -> implementación -> test`.
 
@@ -68,7 +68,8 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 - [x] Validación XSD local con artefactos oficiales descargados.
 - [ ] Validaciones adicionales documentadas.
 - [x] CUFE con fixtures oficiales positivo/negativo.
-- [ ] Firma digital con certificado de pruebas.
+- [x] Firma digital local con certificado RSA efímero y validación XSD oficial.
+- [ ] Firma y envío con certificado real de habilitación.
 
 ### 1.5 Transporte DIAN
 

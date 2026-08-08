@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tribux\Dian\Tests\Documents\Fev19\Invoice;
 
+use DateTimeImmutable;
 use DOMDocument;
 use DOMXPath;
 use JsonException;
+use OpenSSLAsymmetricKey;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Tribux\Dian\Artifacts\Fev19ArtifactSet;
@@ -22,6 +24,9 @@ use Tribux\Dian\Documents\Fev19\Invoice\InvoiceTaxTotal;
 use Tribux\Dian\Documents\Fev19\Invoice\InvoiceTaxSubtotal;
 use Tribux\Dian\Documents\Fev19\Invoice\SoftwareProvider;
 use Tribux\Dian\Documents\Fev19\Invoice\UnsignedInvoiceXmlGenerator;
+use Tribux\Dian\Signing\DianSignerRole;
+use Tribux\Dian\Signing\Fev19XadesSigner;
+use Tribux\Dian\Signing\SigningCredentials;
 use Tribux\Dian\Validation\DianXsdValidator;
 
 final class UnsignedInvoiceXmlGeneratorTest extends TestCase
@@ -78,6 +83,34 @@ final class UnsignedInvoiceXmlGeneratorTest extends TestCase
         $result = (new DianXsdValidator())->validate(
             (new UnsignedInvoiceXmlGenerator())->generate($this->invoiceFromFixture()),
             $artifacts->xsdFor(DianDocumentType::Invoice),
+        );
+
+        self::assertTrue($result->valid, implode("\n", array_map(
+            static fn ($error): string => sprintf('line %d: %s', $error->line, $error->message),
+            $result->errors,
+        )));
+    }
+
+    #[Test]
+    public function its_xades_signed_invoice_passes_the_official_xsd_when_the_toolbox_is_available(): void
+    {
+        $toolbox = getenv('TRIBUX_FEV19_TOOLBOX');
+
+        if (! is_string($toolbox) || $toolbox === '') {
+            self::markTestSkipped('Set TRIBUX_FEV19_TOOLBOX to run the signed FEV 1.9 XSD compliance test.');
+        }
+
+        $credentials = $this->ephemeralCredentials();
+        $unsignedXml = (new UnsignedInvoiceXmlGenerator())->generate($this->invoiceFromFixture());
+        $signedXml = (new Fev19XadesSigner())->sign(
+            $unsignedXml,
+            $credentials,
+            DianSignerRole::Supplier,
+            new DateTimeImmutable('@'.($credentials->certificate->validFrom + 1)),
+        );
+        $result = (new DianXsdValidator())->validate(
+            $signedXml,
+            Fev19ArtifactSet::discover($toolbox)->xsdFor(DianDocumentType::Invoice),
         );
 
         self::assertTrue($result->valid, implode("\n", array_map(
@@ -151,6 +184,64 @@ final class UnsignedInvoiceXmlGeneratorTest extends TestCase
             ),
             lines: array_map(fn (mixed $line): InvoiceLine => $this->line($line), $lines),
         );
+    }
+
+    private function ephemeralCredentials(): SigningCredentials
+    {
+        $options = $this->opensslOptions();
+        $key = openssl_pkey_new($options);
+
+        if (! $key instanceof OpenSSLAsymmetricKey) {
+            throw new \RuntimeException('OpenSSL could not generate an ephemeral RSA key.');
+        }
+
+        $requestKey = $key;
+        $request = openssl_csr_new([
+            'countryName' => 'CO',
+            'organizationName' => 'Tribux Test',
+            'commonName' => 'Ephemeral Tribux XSD Test',
+        ], $requestKey, $options);
+
+        if (! $request instanceof \OpenSSLCertificateSigningRequest) {
+            throw new \RuntimeException('OpenSSL could not generate an ephemeral certificate request.');
+        }
+
+        $certificate = openssl_csr_sign($request, null, $key, 2, $options, 271828);
+
+        if (! $certificate instanceof \OpenSSLCertificate) {
+            throw new \RuntimeException('OpenSSL could not self-sign an ephemeral certificate.');
+        }
+
+        $privateKeyPem = '';
+        $certificatePem = '';
+
+        if (
+            ! openssl_pkey_export($key, $privateKeyPem, null, $options)
+            || ! is_string($privateKeyPem)
+            || ! openssl_x509_export($certificate, $certificatePem)
+            || ! is_string($certificatePem)
+        ) {
+            throw new \RuntimeException('OpenSSL could not export ephemeral signing material.');
+        }
+
+        return SigningCredentials::fromPem($privateKeyPem, $certificatePem);
+    }
+
+    /** @return array<string, int|string> */
+    private function opensslOptions(): array
+    {
+        $options = [
+            'private_key_bits' => 2048,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+            'digest_alg' => 'sha256',
+        ];
+        $windowsConfiguration = dirname(PHP_BINARY).'/extras/ssl/openssl.cnf';
+
+        if (is_file($windowsConfiguration)) {
+            $options['config'] = $windowsConfiguration;
+        }
+
+        return $options;
     }
 
     /** @param array<string, mixed> $fixture */

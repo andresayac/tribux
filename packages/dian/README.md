@@ -6,9 +6,9 @@ opcional de Tribux.
 
 El paquete incluye el cálculo CUFE-SHA384 FEV 1.9 validado localmente contra el
 ejemplo oficial, códigos de ambiente, contratos iniciales SOAP, un modelo de
-factura DIAN versionado y generación UBL 2.1 sin firma. **Todavía no firma,
-ejecuta Schematron, transmite ni puede afirmar que produce una factura aceptada
-por la DIAN.**
+factura DIAN versionado, generación UBL 2.1, firma XAdES-EPES y validación XSD y
+Schematron. **Todavía no transmite ni puede afirmar que produce una factura
+aceptada por la DIAN.**
 
 `Artifacts/Fev19ArtifactSet` descubre los XSD en la caja descargada y
 `Validation/DianXsdValidator` valida XML sin habilitar acceso de red para el
@@ -52,12 +52,35 @@ Submission/
 
 Cualquier implementación futura debe seguir `AGENTS.md` y la matriz de compliance.
 
-`Signing/DianSignaturePolicy` expone únicamente metadatos verificados de la
-política. No maneja certificados ni claves privadas y no equivale a un firmador
-XAdES.
+`Signing/Fev19XadesSigner` añade la segunda extensión UBL y firma con el perfil
+observado en el anexo FEV 1.9 y los ejemplos oficiales recientes: C14N inclusivo,
+RSA-SHA256 y tres referencias SHA-384. `SigningCredentials` importa PEM o
+PKCS#12/P12 en memoria, comprueba que certificado y clave RSA correspondan y no
+expone la clave privada ni conserva la contraseña.
+
+```php
+use DateTimeImmutable;
+use Tribux\Dian\Signing\DianSignerRole;
+use Tribux\Dian\Signing\Fev19XadesSigner;
+use Tribux\Dian\Signing\SigningCredentials;
+
+$credentials = SigningCredentials::fromPkcs12($p12Contents, $password);
+$signedXml = (new Fev19XadesSigner())->sign(
+    unsignedXml: $unsignedXml,
+    credentials: $credentials,
+    role: DianSignerRole::Supplier,
+    signingTime: new DateTimeImmutable('now'),
+);
+```
+
+La aplicación es responsable de obtener `$p12Contents` y `$password` desde un
+proveedor de secretos, no desde el payload HTTP ni desde el repositorio. El test
+criptográfico genera certificado y clave efímeros en cada ejecución; no hay
+material privado versionado. La firma pasa localmente el XSD oficial, pero falta
+probarla con un certificado real de habilitación y obtener respuesta DIAN.
 
 `Documents/Fev19/Invoice/UnsignedInvoiceXmlGenerator` produce XML determinista
-con `sts:DianExtensions`. Su contrato exige que numeración, software, CUFE,
+sin firma con `sts:DianExtensions`. Su contrato exige que numeración, software, CUFE,
 terceros, impuestos y totales ya estén normalizados; no infiere reglas fiscales.
 El fixture de construcción completo está en
 `tests/Fixtures/fev-1.9/invoice/minimal-priced-line.json` y su uso se prueba en

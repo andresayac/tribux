@@ -43,11 +43,12 @@
             "dist": {
                 "type": "path",
                 "url": "packages/dian",
-                "reference": "014651723b8a453abd12850630e6a4f3028dafbd"
+                "reference": "d75e4968acc3e5efd86ada764c140e35451fce55"
             },
             "require": {
                 "ext-dom": "*",
                 "ext-libxml": "*",
+                "ext-openssl": "*",
                 "php": "^8.4 || ^8.5",
                 "tribux/core": "dev-main"
             },
