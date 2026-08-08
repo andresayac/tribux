@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3f816e7277967794f86fd48de8843b4d",
+    "content-hash": "609b82a96b22a67e04c375e349c3aa8c",
     "packages": [
         {
             "name": "tribux/core",
@@ -43,9 +43,11 @@
             "dist": {
                 "type": "path",
                 "url": "packages/dian",
-                "reference": "c46077a8609c26f0d7792ed54d365bcb9a0a464c"
+                "reference": "014651723b8a453abd12850630e6a4f3028dafbd"
             },
             "require": {
+                "ext-dom": "*",
+                "ext-libxml": "*",
                 "php": "^8.4 || ^8.5",
                 "tribux/core": "dev-main"
             },
@@ -1882,6 +1884,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
+        "ext-zip": "*",
         "php": "^8.4 || ^8.5"
     },
     "platform-dev": {},

@@ -8,6 +8,11 @@ El paquete ya incluye el cálculo CUFE-SHA384 FEV 1.9 validado localmente contra
 el ejemplo oficial, códigos de ambiente y contratos iniciales de endpoints y
 operaciones. **Todavía no genera, firma ni transmite una factura válida.**
 
+`Artifacts/Fev19ArtifactSet` descubre los XSD en la caja descargada y
+`Validation/DianXsdValidator` valida XML sin habilitar acceso de red para el
+documento. Los errores de libxml conservan nivel, código, línea, columna,
+mensaje y archivo. El XSL oficial exige XSLT 3.0 y no se ejecuta con libxslt.
+
 Ejemplo del motor como librería:
 
 ```php

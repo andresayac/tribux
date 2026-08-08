@@ -14,3 +14,4 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Investigación trazable FEV 1.9, manifiesto reproducible de artefactos y matriz de compliance inicial.
 - Cálculo CUFE-SHA384 con fixtures oficiales y perfiles versionados de ambiente/endpoints SOAP.
 - Política de firma DIAN v2 y roles XAdES registrados con hashes verificables.
+- Descubrimiento de artefactos FEV 1.9, extracción segura y validación XSD local estructurada.

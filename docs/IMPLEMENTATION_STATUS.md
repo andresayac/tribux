@@ -30,6 +30,7 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 | CUFE FEV 1.9 | `packages/dian/src/Cufe` |
 | Perfil de endpoints/operaciones | `packages/dian/src/Soap` |
 | Metadatos de política de firma | `packages/dian/src/Signing` |
+| Descubrimiento/validación XSD | `packages/dian/src/Artifacts` y `packages/dian/src/Validation` |
 | Artefactos oficiales verificables | `resources/dian/fev/1.9/manifest.json` |
 | Matriz FEV 1.9 | `docs/compliance/fev-1.9.md` |
 | Casos de uso API | `apps/api/app/Application` |
@@ -55,13 +56,14 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 - códigos de ambiente, defaults de endpoints y acciones SOAP iniciales
   documentados y cubiertos por tests;
 - manifiesto reproducible con hashes de anexo, caja, política y WSDL oficiales;
-- política de firma DIAN v2 verificada por SHA-256/SHA-384 y roles tipados.
+- política de firma DIAN v2 verificada por SHA-256/SHA-384 y roles tipados;
+- extracción segura de la caja y validación XSD con errores libxml estructurados.
 
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
 - worker de construcción y envío de factura;
-- ejecución local de XSD/Schematron y modelo UBL FEV 1.9;
+- ejecución Schematron/XSLT 3.0 y modelo UBL FEV 1.9;
 - normalización monetaria previa al CUFE, XAdES y cliente SOAP seguro;
 - object storage y evidencia de auditoría;
 - pruebas en ambiente DIAN de habilitación;

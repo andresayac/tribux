@@ -35,7 +35,15 @@ El ZIP verificado contiene 177 archivos. Entre ellos:
 
 Se observaron esquemas principales para `Invoice`, `CreditNote`, `DebitNote`,
 `AttachedDocument`, `ApplicationResponse` y `DIAN_UBL_Structures`. Este
-inventario no significa que Tribux ya ejecute esas validaciones.
+inventario no significa que Tribux ya ejecute todas esas validaciones.
+
+Tribux ya puede descubrir los cinco XSD de documento y ejecutar validación
+estructural local con DOM/libxml. El ejemplo oficial
+`ejemplificacionIBUA-3.xml` pasó esa validación en la fecha de corte. El
+Schematron `DIAN-UBL21-model.sch` declara `queryBinding="xslt3"` y su XSL
+compilado usa XSLT 3.0: la extensión XSL de PHP usa libxslt 1.x y no es un motor
+compatible. Schematron permanece pendiente hasta integrar y fijar un runtime
+XSLT 3.0 reproducible.
 
 ## Perfil de servicio observado
 

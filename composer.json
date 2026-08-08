@@ -4,6 +4,7 @@
   "type": "project",
   "license": "Apache-2.0",
   "require": {
+    "ext-zip": "*",
     "php": "^8.4 || ^8.5",
     "tribux/core": "dev-main",
     "tribux/dian": "dev-main"
@@ -24,7 +25,9 @@
   },
   "scripts": {
     "analyse": "phpstan analyse --memory-limit=512M",
+    "dian:extract-fev19": "@php tools/dian/extract-toolbox.php",
     "dian:fetch-fev19": "@php tools/dian/fetch-artifacts.php resources/dian/fev/1.9/manifest.json",
+    "dian:validate-xml": "@php tools/dian/validate-xml.php",
     "lint": "parallel-lint packages --exclude vendor",
     "test": "phpunit"
   }

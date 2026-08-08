@@ -65,7 +65,7 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 - [x] JSON -> Domain para el contrato mínimo actual.
 - [ ] Domain -> DIAN document model.
 - [ ] DIAN model -> UBL XML.
-- [ ] Validación XSD local.
+- [x] Validación XSD local con artefactos oficiales descargados.
 - [ ] Validaciones adicionales documentadas.
 - [x] CUFE con fixtures oficiales positivo/negativo.
 - [ ] Firma digital con certificado de pruebas.

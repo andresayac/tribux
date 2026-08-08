@@ -4,6 +4,8 @@
   "type": "library",
   "license": "Apache-2.0",
   "require": {
+    "ext-dom": "*",
+    "ext-libxml": "*",
     "php": "^8.4 || ^8.5",
     "tribux/core": "dev-main"
   },
