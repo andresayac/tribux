@@ -6,7 +6,7 @@
 
 **Branch activa:** `main`
 
-**HEAD al actualizar este documento:** `5cab5ae`
+**HEAD al actualizar este documento:** `336debf`
 
 **Estado del producto:** pre-alpha; componentes DIAN validados localmente, sin
 evidencia de aceptación real en habilitación.
@@ -60,6 +60,8 @@ La rama estaba limpia y sincronizada con `origin/main` al crear este archivo.
 Los últimos cortes verticales publicados son:
 
 ```text
+336debf feat(api): build and validate queued invoices
+82a9eb0 docs: record numbering and sequences in the handoff plan
 5cab5ae feat(dian): query authorized numbering ranges
 bb9d5ec feat(api): reserve invoice numbers atomically
 03605bd feat(dian): encode FEV 1.9 file sequences explicitly
@@ -68,21 +70,23 @@ c362d3c docs: record the issuance contract in the handoff plan
 d1e5c0a feat(api): enrich the invoice issuance contract
 34f3998 docs: describe issuer, secret and evidence mounts
 bda637f feat(api): store invoice evidence bytes
-4f33201 feat(api): load signing credentials securely
-dc7b34d feat(api): resolve versioned issuer profiles
 ```
 
 Último quality gate completo observado, con caja FEV 1.9 y Saxon disponibles:
 
 ```text
-Paquetes: 130 tests, 601 assertions
-API:       79 tests, 333 assertions
-Total:    209 tests, 934 assertions
+Paquetes: 131 tests, 608 assertions
+API:       97 tests, 402 assertions
+Total:    228 tests, 1010 assertions
 PHPStan:   sin errores
 Pint:      sin errores
 Lint PHP:  sin errores
 OpenAPI:   válido
 ```
+
+Sin `TRIBUX_FEV19_TOOLBOX` ni `TRIBUX_SAXON_HOME` se omiten los tests de
+artefactos oficiales, incluido el que ejecuta el pipeline completo contra la
+caja real. Para una revisión de compliance hay que definirlas.
 
 La suite de la API vuelve a ejecutarse contra PostgreSQL 18 real. Esa ejecución
 es la que detectó una columna `uuid` alimentada con una cadena arbitraria que
@@ -463,44 +467,42 @@ operación**: guardar su XML crudo guardaría un secreto.
 La consulta sigue siendo una consulta. Convertir un rango reportado en un número
 emitido sigue pasando por la reserva validada.
 
-### P0.6 — Pipeline local de construcción y validación
+### P0.6 — Pipeline local de construcción y validación — **HECHO** (`336debf`)
 
-Crear un caso de uso independiente de Laravel, coordinado después por el job.
-Entrada recomendada: ID de factura + perfil de emisor resuelto + hora explícita.
+`App\Application\Invoices\Building\BuildInvoiceDocument` es PHP plano: recibe un
+`invoiceId` y nada más, así que un job, un comando o un test pueden ejecutarlo.
+No toca la red.
 
-Etapas:
+Etapas implementadas: tomar posesión, resolver perfil y secretos, reservar o
+validar el número, armar el `InvoiceGenerationContext`, mapear a FEV 1.9,
+generar el UBL sin firma, persistirlo como evidencia con su SHA-256, validar
+XSD, ejecutar Schematron y guardar el resultado, y registrar número y CUFE en la
+factura.
 
-1. cargar factura y payload inmutable;
-2. reservar número/secuencias si todavía no existen;
-3. construir `InvoiceGenerationContext`;
-4. ejecutar `CoreInvoiceMapper`;
-5. conservar CUFE;
-6. generar XML unsigned;
-7. calcular SHA-256 y persistir evidencia;
-8. validar XSD unsigned;
-9. ejecutar Schematron y persistir todos los mensajes;
-10. detener el flujo con error estructurado ante validación bloqueante;
-11. no llamar a red.
+**Corrección de diseño obtenida ejecutando la caja oficial:** el Schematron
+oficial exige `ds:Signature`, así que un documento sin firmar siempre reporta
+FAC03 y una compuerta bloqueante aquí sería inalcanzable. La ejecución sin firma
+queda como aviso temprano: se guarda el resultado completo y se devuelven los
+códigos fatales al llamador, y **la comprobación bloqueante pasa a P0.7**. Nada
+en esta etapa presenta como válido un documento con hallazgos.
 
-Tests:
+Esa misma ejecución dejó evidencia nueva, registrada en
+`docs/research/OPEN_QUESTIONS.md`: FAD03 confirma Q-009 con el mensaje exacto
+del XSL, y FAJ26/FAJ27/FAY10 muestran que el ejemplo publicado es sintético y no
+fiscalmente válido.
 
-- happy path con fixture sintético;
-- falta de número/configuración;
-- XSD inválido;
-- tax mapping ausente;
-- cantidad de unidades distinta a líneas;
-- moneda incompatible;
-- error Schematron conservado sin aplanar;
-- reejecución idempotente de una etapa ya persistida.
+El pipeline se detiene en `building` a propósito. Declarar `signed` aquí dejaría
+que una etapa posterior se saltara trabajo que nunca ocurrió.
 
-Q-009 debe permanecer visible. Un test no puede marcar como válido un documento
-con FAD03 simplemente para desbloquear el worker.
+Otras decisiones de este corte:
 
-Commit sugerido:
-
-```text
-feat(api): build and validate queued invoices
-```
+- un número aportado por el cliente pasa por el mismo libro de asientos que uno
+  reservado, así que no puede chocar con uno que Tribux entregue después;
+- una factura con monedas mezcladas se rechaza al aceptarla, antes de consumir
+  número e intento;
+- la reejecución sobre una factura ya construida devuelve `NotClaimable` sin
+  reservar otro número ni escribir evidencia nueva;
+- un emisor sin configurar no abre intento y deja la factura en `queued`.
 
 ### P0.7 — Firma, validación firmada y empaquetado
 
@@ -520,14 +522,29 @@ Una vez verde el pipeline unsigned:
 Nunca reformatear el XML después de firmarlo. Nunca guardar P12/PFX o contraseña
 como evidencia.
 
+**Aquí vive la compuerta Schematron bloqueante.** P0.6 demostró que el
+Schematron oficial exige `ds:Signature`, de modo que sólo el documento firmado
+puede evaluarse de verdad. Entre el paso 5 y el 7 hay que ejecutar el Schematron
+sobre el XML firmado, persistir el resultado como evidencia y detener el flujo
+con error estructurado si hay hallazgos fatales.
+
+Q-009 debe permanecer visible. Un test no puede marcar como válido un documento
+con FAD03 sólo para desbloquear el worker, ni el generador puede cambiar el
+`ProfileID` para satisfacer al XSL.
+
+La toma de posesión necesita un método nuevo, `claimForSigning`, que acepte una
+factura en `building`; `claimForBuilding` sigue exigiendo `queued` a propósito.
+
 Tests:
 
 - certificado efímero;
 - certificado vencido/no vigente;
 - clave no correspondiente;
 - XML firmado XSD-valid con caja oficial cuando esté disponible;
+- resultado Schematron del documento firmado conservado sin aplanar;
 - ZIP contiene exactamente el XML firmado;
 - nombres comparten emisor/proveedor/año;
+- secuencias XML/ZIP tomadas del reservador anual, no inventadas;
 - repetición produce evidencia coherente o detecta intento previo.
 
 Commit sugerido:
@@ -934,29 +951,27 @@ Al finalizar cada corte:
 
 Empezar exactamente así:
 
-1. verificar que `HEAD` incluye `5cab5ae` o commits posteriores;
+1. verificar que `HEAD` incluye `336debf` o commits posteriores;
 2. ejecutar el quality gate completo con artefactos oficiales;
 3. leer ADR 0016 antes de tocar el flujo de procesamiento;
-4. conectar el pipeline local sin red (P0.6);
-5. firmar/empaquetar (P0.7);
-6. integrar envío/consulta con fakes (P0.8);
-7. habilitar job Laravel (P0.9);
-8. crear comando controlado de habilitación (P0.10);
-9. coordinar credenciales humanas y primera evidencia real (P0.11).
+4. firmar, validar el documento firmado y empaquetar (P0.7);
+5. integrar envío/consulta con fakes (P0.8);
+6. habilitar job Laravel (P0.9);
+7. crear comando controlado de habilitación (P0.10);
+8. coordinar credenciales humanas y primera evidencia real (P0.11).
 
 No comenzar la siguiente sesión implementando directamente un POST a DIAN desde
 el controller ni desde un job.
 
-**Ya no falta ninguna entrada.** Intentos, perfiles, secretos, evidencia,
-contrato HTTP y numeración existen y están probados. P0.6 es puro ensamblaje:
-un caso de uso independiente de Laravel que una perfil + detalles de emisión +
-número reservado + secretos en un `InvoiceGenerationContext`, ejecute
-`CoreInvoiceMapper`, genere el XML unsigned, lo valide contra XSD y Schematron
-y persista cada artefacto y cada mensaje como evidencia. Sin red.
+El pipeline ya construye y valida sin red. P0.7 continúa desde una factura en
+`building`: firmar con `Fev19XadesSigner`, revalidar XSD sobre el XML firmado,
+**ejecutar el Schematron bloqueante sobre el documento firmado** —única
+ejecución que puede pasar, porque las reglas exigen `ds:Signature`—, construir
+los nombres con las secuencias anuales ya reservables y empaquetar.
 
-Recordatorio para P0.6: Q-009 sigue abierta. Un test no puede marcar como válido
-un documento con FAD03 sólo para desbloquear el pipeline. El resultado
-Schematron se conserva estructurado y el flujo se detiene con error tipado.
+Antes de escribir código, decidir el método de toma de posesión
+`claimForSigning` y añadirlo al repositorio de procesamiento con su test de
+concurrencia, igual que los tres existentes.
 
 ---
 
