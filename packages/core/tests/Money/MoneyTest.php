@@ -52,4 +52,11 @@ final class MoneyTest extends TestCase
 
         (new Money('1.00', 'COP'))->plus(new Money('1.00', 'USD'));
     }
+
+    #[Test]
+    public function it_normalizes_equivalent_tax_rate_representations(): void
+    {
+        self::assertSame('19', (new TaxRate('019.0000'))->percent);
+        self::assertSame('0', (new TaxRate('0.0000'))->percent);
+    }
 }

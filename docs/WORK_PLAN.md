@@ -47,7 +47,7 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 - [ ] `Party`, `TaxIdentifier`, `Address`.
 - [ ] `Money`, `Currency`, `Quantity`.
 - [ ] `InvoiceLine`, descuentos/cargos mínimos.
-- [ ] `Tax`, `TaxRate` y totales.
+- [ ] `Tax`, `TaxRate` y totales (calculador básico exacto listo; faltan descuentos, cargos y retenciones).
 - [ ] `Numbering`/prefijo.
 - [ ] Fechas y zona horaria explícitas.
 

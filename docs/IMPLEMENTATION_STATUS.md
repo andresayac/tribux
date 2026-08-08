@@ -49,6 +49,8 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 - decimales transportados y almacenados como strings, sin floats;
 - suma, multiplicación, porcentajes y cuantización decimal de precisión arbitraria,
   con escala/redondeo explícitos y protección de moneda;
+- cálculo básico de importes por línea, impuestos porcentuales agrupados y
+  totales de factura para precios antes de impuestos;
 - UUIDv7 interno;
 - `Idempotency-Key` con conflicto al cambiar el payload;
 - request/correlation ID;

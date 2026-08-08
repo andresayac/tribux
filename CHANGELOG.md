@@ -18,3 +18,4 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Modelo de factura FEV 1.9 y generación UBL 2.1 unsigned validada contra el XSD oficial.
 - Código de seguridad de software SHA-384 y URL QR DIAN diferenciada por ambiente.
 - Aritmética decimal exacta en el core con escala y redondeo explícitos.
+- Calculador básico de líneas, impuestos porcentuales y totales de factura.
