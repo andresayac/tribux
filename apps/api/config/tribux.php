@@ -50,4 +50,23 @@ return [
         'store_soap_requests' => (bool) env('TRIBUX_EVIDENCE_STORE_SOAP_REQUESTS', false),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Official FEV 1.9 artefacts
+    |--------------------------------------------------------------------------
+    |
+    | Local paths to the extracted DIAN toolbox and SaxonJ-HE distribution, both
+    | downloaded and hash-verified through the composer scripts. They are never
+    | committed, so a deployment must mount or extract them before an invoice
+    | can be validated.
+    |
+    */
+
+    'fev19' => [
+        'toolbox_path' => env('TRIBUX_FEV19_TOOLBOX'),
+        'saxon_home' => env('TRIBUX_SAXON_HOME'),
+        'java_binary' => env('TRIBUX_JAVA_BINARY', 'java'),
+        'schematron_timeout' => (int) env('TRIBUX_SCHEMATRON_TIMEOUT', 30),
+    ],
+
 ];

@@ -19,6 +19,15 @@ final class NumberOutsideAuthorizedRange extends DomainException
         ));
     }
 
+    public static function alreadyTaken(NumberingAuthorization $authorization, int $number): self
+    {
+        return new self(sprintf(
+            'Number %d of authorization "%s" already belongs to another document.',
+            $number,
+            $authorization->reference,
+        ));
+    }
+
     public static function exhausted(NumberingAuthorization $authorization): self
     {
         return new self(sprintf(

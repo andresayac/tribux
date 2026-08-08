@@ -112,6 +112,9 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   que escapen del montaje y secretos no serializables;
 - almacenamiento de evidencia con referencia derivada del digest, disco
   configurable y opción explícita para el request SOAP;
+- pipeline local que construye y valida una factura encolada sin tocar la red,
+  con toma de posesión, evidencia de XML sin firma, resultado XSD y resultado
+  Schematron, y errores tipados por etapa;
 - autorizaciones de numeración en el core, reserva atómica de números y de
   secuencias anuales XML/ZIP por libro de asientos, y codificación explícita del
   consecutivo de nombre mientras Q-008 siga abierta;
@@ -125,9 +128,9 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
-- worker de construcción y envío de factura; la persistencia de intentos, los
-  perfiles de emisor, los secretos y el almacén de evidencia ya existen, pero
-  ningún job los usa todavía;
+- job Laravel que dispare el pipeline; el caso de uso existe y está probado,
+  pero nada lo invoca todavía;
+- firma, validación del documento firmado y empaquetado dentro del pipeline;
 - reserva atómica de numeración y de secuencias XML/ZIP;
 - validación de valores contra los catálogos oficiales DIAN (Q-004): hoy los
   códigos se validan sólo por forma y se conservan literales;
@@ -142,6 +145,7 @@ La API actual es solo para desarrollo local. No debe exponerse públicamente has
 
 ## Próximo corte recomendado
 
-Reserva atómica de numeración y de secuencias XML/ZIP. Es lo último que falta
-para que el pipeline local de construcción y validación pueda ejecutarse sin
-red. Ver `NEXT_STEPS.md`.
+Firma, validación del documento firmado y empaquetado. La comprobación
+Schematron bloqueante pertenece a esa etapa: el Schematron oficial exige
+`ds:Signature`, así que un documento sin firmar siempre reporta FAC03 y la
+ejecución sin firma sólo sirve como aviso temprano. Ver `NEXT_STEPS.md`.

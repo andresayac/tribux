@@ -85,6 +85,52 @@ final readonly class EloquentInvoiceNumberReserver implements InvoiceNumberReser
         throw ReservationContention::after(sprintf('a number for invoice "%s"', $invoiceId), self::MAX_ATTEMPTS);
     }
 
+    public function claim(
+        string $issuerId,
+        string $invoiceId,
+        NumberingAuthorization $authorization,
+        int $ordinal,
+        DateTimeImmutable $issuerLocalMoment,
+    ): ReservedNumber {
+        $existing = $this->find($invoiceId);
+
+        if ($existing !== null) {
+            if ($existing->ordinal !== $ordinal) {
+                throw NumberOutsideAuthorizedRange::alreadyTaken($authorization, $ordinal);
+            }
+
+            return $existing;
+        }
+
+        $authorization->assertCanIssue($ordinal, $issuerLocalMoment);
+        $reserved = ReservedNumber::from($authorization, $ordinal);
+
+        try {
+            DB::transaction(function () use ($issuerId, $invoiceId, $reserved): void {
+                InvoiceNumberReservationRecord::query()->create([
+                    'id' => $this->ids->generate(),
+                    'issuer_id' => $issuerId,
+                    'authorization_reference' => $reserved->authorizationReference,
+                    'prefix' => $reserved->prefix,
+                    'ordinal' => $reserved->ordinal,
+                    'value' => $reserved->value,
+                    'invoice_id' => $invoiceId,
+                    'reserved_at' => $this->clock->now(),
+                ]);
+            });
+        } catch (QueryException) {
+            $existing = $this->find($invoiceId);
+
+            if ($existing !== null && $existing->ordinal === $ordinal) {
+                return $existing;
+            }
+
+            throw NumberOutsideAuthorizedRange::alreadyTaken($authorization, $ordinal);
+        }
+
+        return $reserved;
+    }
+
     public function find(string $invoiceId): ?ReservedNumber
     {
         $record = InvoiceNumberReservationRecord::query()->where('invoice_id', $invoiceId)->first();

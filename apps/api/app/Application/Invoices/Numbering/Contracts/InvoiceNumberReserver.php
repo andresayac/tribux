@@ -33,5 +33,23 @@ interface InvoiceNumberReserver
         DateTimeImmutable $issuerLocalMoment,
     ): ReservedNumber;
 
+    /**
+     * Take one specific number, as when the client supplied it.
+     *
+     * It goes through the same ledger as a reservation, so a supplied number
+     * cannot collide with one Tribux hands out later.
+     *
+     * @throws AuthorizationNotActive
+     * @throws NumberOutsideAuthorizedRange when the number is outside the range
+     *                                      or already taken by another invoice
+     */
+    public function claim(
+        string $issuerId,
+        string $invoiceId,
+        NumberingAuthorization $authorization,
+        int $ordinal,
+        DateTimeImmutable $issuerLocalMoment,
+    ): ReservedNumber;
+
     public function find(string $invoiceId): ?ReservedNumber;
 }

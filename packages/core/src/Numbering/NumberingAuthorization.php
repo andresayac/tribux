@@ -72,6 +72,29 @@ final readonly class NumberingAuthorization
         return $this->prefix.$number;
     }
 
+    /**
+     * The ordinal behind a formatted value, or null when the value does not
+     * belong to this authorization at all.
+     *
+     * Used to check a client-supplied number instead of reserving one. A
+     * leading zero is rejected: "SETP01" and "SETP1" would otherwise be two
+     * spellings of the same ordinal and only one of them could be accounted.
+     */
+    public function ordinalOf(string $value): ?int
+    {
+        if ($this->prefix !== '' && ! str_starts_with($value, $this->prefix)) {
+            return null;
+        }
+
+        $digits = substr($value, strlen($this->prefix));
+
+        if (preg_match('/\A[1-9][0-9]*\z/D', $digits) !== 1) {
+            return null;
+        }
+
+        return (int) $digits;
+    }
+
     /** @throws NumberOutsideAuthorizedRange|AuthorizationNotActive */
     public function assertCanIssue(int $number, DateTimeImmutable $issuerLocalMoment): void
     {

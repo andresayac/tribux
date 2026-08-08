@@ -8,6 +8,7 @@ use App\Application\Contracts\IdGenerator;
 use App\Application\Invoices\Contracts\InvoiceRepository;
 use App\Application\Invoices\Data\InvoiceCreationResult;
 use App\Application\Invoices\Data\InvoiceView;
+use App\Application\Invoices\Data\StoredInvoice;
 use App\Application\Invoices\Exceptions\IdempotencyConflict;
 use App\Application\Invoices\Processing\StatusChangeSource;
 use App\Infrastructure\Persistence\Models\IdempotencyKeyRecord;
@@ -90,6 +91,62 @@ final class EloquentInvoiceRepository implements InvoiceRepository
         $record = InvoiceRecord::query()->find($invoiceId);
 
         return $record instanceof InvoiceRecord ? $this->recordToView($record) : null;
+    }
+
+    public function load(string $invoiceId): ?StoredInvoice
+    {
+        $record = InvoiceRecord::query()->find($invoiceId);
+
+        if (! $record instanceof InvoiceRecord) {
+            return null;
+        }
+
+        $status = $record->getAttribute('status');
+        $createdAt = $record->getAttribute('created_at');
+        $payload = $record->getAttribute('payload');
+
+        if (! $status instanceof InvoiceStatus || ! $createdAt instanceof DateTimeInterface || ! is_array($payload)) {
+            throw new RuntimeException('Stored invoice contains invalid status, timestamp or payload data.');
+        }
+
+        /** @var array<string, mixed> $payload */
+        return new StoredInvoice(
+            id: (string) $record->getKey(),
+            issuerId: (string) $record->getAttribute('issuer_id'),
+            status: $status,
+            number: $this->nullableString($record->getAttribute('number')),
+            cufe: $this->nullableString($record->getAttribute('cufe')),
+            payload: $payload,
+            createdAt: DateTimeImmutable::createFromInterface($createdAt),
+        );
+    }
+
+    public function recordDocumentIdentity(string $invoiceId, string $number, string $cufe): void
+    {
+        DB::transaction(function () use ($invoiceId, $number, $cufe): void {
+            $record = InvoiceRecord::query()->whereKey($invoiceId)->lockForUpdate()->first();
+
+            if (! $record instanceof InvoiceRecord) {
+                throw new RuntimeException(sprintf('Invoice "%s" does not exist.', $invoiceId));
+            }
+
+            $storedCufe = $this->nullableString($record->getAttribute('cufe'));
+
+            if ($storedCufe !== null) {
+                if ($storedCufe !== $cufe || $this->nullableString($record->getAttribute('number')) !== $number) {
+                    throw new RuntimeException(sprintf(
+                        'Invoice "%s" already carries a different document identity.',
+                        $invoiceId,
+                    ));
+                }
+
+                return;
+            }
+
+            $record->setAttribute('number', $number);
+            $record->setAttribute('cufe', $cufe);
+            $record->save();
+        }, 3);
     }
 
     private function findIdempotencyRecord(string $issuerId, string $key, bool $lock): ?IdempotencyKeyRecord

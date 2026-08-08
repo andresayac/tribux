@@ -55,6 +55,20 @@ final class NumberingAuthorizationTest extends TestCase
     }
 
     #[Test]
+    public function it_reads_the_ordinal_behind_a_supplied_value(): void
+    {
+        $authorization = $this->authorization();
+
+        self::assertSame(1, $authorization->ordinalOf('SETP1'));
+        self::assertSame(5000000, $authorization->ordinalOf('SETP5000000'));
+        self::assertNull($authorization->ordinalOf('OTHER1'), 'A foreign prefix does not belong here.');
+        self::assertNull($authorization->ordinalOf('SETP'), 'A prefix without digits is not a number.');
+        self::assertNull($authorization->ordinalOf('SETP1A'));
+        self::assertNull($authorization->ordinalOf('SETP01'), 'A padded spelling would double-count an ordinal.');
+        self::assertNull($authorization->ordinalOf('SETP0'));
+    }
+
+    #[Test]
     public function it_refuses_a_number_outside_the_range(): void
     {
         $this->expectException(NumberOutsideAuthorizedRange::class);

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Application\Contracts\Clock;
 use App\Application\Contracts\IdGenerator;
+use App\Application\Invoices\Building\Contracts\Fev19DocumentValidator;
 use App\Application\Invoices\Contracts\InvoiceRepository;
 use App\Application\Invoices\Numbering\Contracts\DocumentSequenceReserver;
 use App\Application\Invoices\Numbering\Contracts\InvoiceNumberReserver;
@@ -23,6 +24,7 @@ use App\Infrastructure\Persistence\EloquentDocumentSequenceReserver;
 use App\Infrastructure\Persistence\EloquentInvoiceNumberReserver;
 use App\Infrastructure\Persistence\EloquentInvoiceProcessingRepository;
 use App\Infrastructure\Persistence\EloquentInvoiceRepository;
+use App\Infrastructure\Validation\OfficialFev19DocumentValidator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 
@@ -54,6 +56,20 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(IssuerSecretProvider::class, FileIssuerSecretProvider::class);
         $this->app->bind(SigningCredentialsProvider::class, FileSigningCredentialsProvider::class);
+
+        $this->app->singleton(Fev19DocumentValidator::class, function (): OfficialFev19DocumentValidator {
+            $toolbox = config('tribux.fev19.toolbox_path');
+            $saxonHome = config('tribux.fev19.saxon_home');
+            $java = config('tribux.fev19.java_binary');
+            $timeout = config('tribux.fev19.schematron_timeout');
+
+            return new OfficialFev19DocumentValidator(
+                is_string($toolbox) ? $toolbox : null,
+                is_string($saxonHome) ? $saxonHome : null,
+                is_string($java) && $java !== '' ? $java : 'java',
+                is_int($timeout) && $timeout > 0 ? $timeout : 30,
+            );
+        });
 
         $this->app->singleton(EvidenceStore::class, function (): DiskEvidenceStore {
             $disk = config('tribux.evidence.disk');
