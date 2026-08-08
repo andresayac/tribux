@@ -14,6 +14,7 @@ use App\Infrastructure\Evidence\InMemoryEvidenceStore;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
+use Tests\Support\InvoicePayload;
 use Tests\TestCase;
 use Tribux\Dian\DianEnvironment;
 
@@ -135,21 +136,9 @@ final class EvidenceStoreTest extends TestCase
 
     private function createInvoice(): string
     {
-        return $this->app->make(CreateInvoice::class)->execute([
-            'issuer_id' => 'issuer_demo',
-            'customer' => [
-                'identification' => '900123456',
-                'identification_type' => 'NIT',
-                'name' => 'Empresa Ejemplo SAS',
-            ],
-            'lines' => [
-                [
-                    'description' => 'Servicio de desarrollo',
-                    'quantity' => '1.00',
-                    'unit_price' => ['amount' => '100000.00', 'currency' => 'COP'],
-                    'taxes' => [['type' => 'VAT', 'rate' => '19.00']],
-                ],
-            ],
-        ], 'evidence-store')->invoice->id;
+        return $this->app->make(CreateInvoice::class)
+            ->execute(InvoicePayload::minimal(), 'evidence-store')
+            ->invoice
+            ->id;
     }
 }

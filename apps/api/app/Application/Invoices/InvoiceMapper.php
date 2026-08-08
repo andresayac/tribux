@@ -10,6 +10,7 @@ use Tribux\Core\Invoice\Invoice;
 use Tribux\Core\Invoice\InvoiceId;
 use Tribux\Core\Invoice\InvoiceLine;
 use Tribux\Core\Money\Money;
+use Tribux\Core\Party\Address;
 use Tribux\Core\Party\Party;
 use Tribux\Core\Party\TaxIdentifier;
 use Tribux\Core\Quantity\Quantity;
@@ -36,10 +37,28 @@ final class InvoiceMapper
                 ),
                 name: $this->stringValue($customer, 'name'),
                 email: $this->nullableStringValue($customer, 'email'),
+                address: $this->address($this->arrayValue($customer, 'address')),
             ),
             lines: $lines,
             createdAt: $createdAt,
             number: $this->nullableStringValue($payload, 'number'),
+        );
+    }
+
+    /**
+     * The domain keeps a generic postal address. DIAN municipality and
+     * department codes stay out of the core and travel to the FEV 1.9 layer
+     * through the issuance details.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function address(array $payload): Address
+    {
+        return new Address(
+            line: $this->stringValue($payload, 'line'),
+            city: $this->stringValue($payload, 'city_name'),
+            countryCode: $this->nullableStringValue($payload, 'country_code') ?? 'CO',
+            postalCode: $this->nullableStringValue($payload, 'postal_zone'),
         );
     }
 

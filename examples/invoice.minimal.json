@@ -1,15 +1,38 @@
 {
   "issuer_id": "issuer_demo",
+  "issued_at": "2026-08-08T10:30:00-05:00",
   "customer": {
-    "identification": "900123456",
+    "identification": "800123456",
+    "verification_digit": "5",
     "identification_type": "NIT",
-    "name": "Empresa Ejemplo SAS",
-    "email": "facturacion@example.com"
+    "identification_scheme_name": "31",
+    "account_type_code": "1",
+    "tax_level_code": "O-48",
+    "tax_level_list_name": "48",
+    "tax_scheme_id": "01",
+    "tax_scheme_name": "IVA",
+    "name": "Cliente Fixture SAS",
+    "email": "facturacion@example.test",
+    "address": {
+      "line": "Dirección sintética",
+      "city_name": "Medellín",
+      "municipality_code": "05001",
+      "department_name": "Antioquia",
+      "department_code": "05",
+      "country_code": "CO",
+      "country_name": "Colombia"
+    }
+  },
+  "payment": {
+    "means_id": "1",
+    "means_code": "10",
+    "due_date": "2026-08-08"
   },
   "lines": [
     {
       "description": "Servicio de desarrollo",
       "quantity": "1.00",
+      "unit_code": "94",
       "unit_price": {
         "amount": "100000.00",
         "currency": "COP"

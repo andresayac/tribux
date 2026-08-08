@@ -41,6 +41,8 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 ### Changed
 
 - El estado interno `awaiting_reconciliation` se añade al enum público de estado de factura para representar un envío de resultado desconocido que nunca debe reenviarse automáticamente.
+- **Cambio de contrato pre-alpha en `POST /v1/invoices`.** El request ahora exige `issued_at` con desfase UTC explícito, `payment` (`means_id`, `means_code`, `due_date`), `unit_code` por línea y los datos tributarios y la dirección completa del adquirente. Sin ellos no se puede construir un documento FEV 1.9 sin inventar valores fiscales. `examples/invoice.minimal.json` refleja el contrato nuevo.
+- `number` sigue siendo opcional, ahora con regla explícita: si viene, Tribux lo usa y sólo lo valida contra el rango autorizado; si no viene, Tribux reserva el siguiente número de la resolución. No hay un tercer modo implícito.
 
 ### Deprecated
 

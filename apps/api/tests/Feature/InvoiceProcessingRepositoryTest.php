@@ -16,6 +16,7 @@ use App\Application\Invoices\Processing\StatusChangeSource;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\InvoicePayload;
 use Tests\TestCase;
 use Tribux\Core\Invoice\IllegalStatusTransition;
 use Tribux\Core\Invoice\InvoiceStatus;
@@ -367,23 +368,9 @@ final class InvoiceProcessingRepositoryTest extends TestCase
 
     private function createInvoice(string $idempotencyKey): string
     {
-        $result = $this->app->make(CreateInvoice::class)->execute([
-            'issuer_id' => 'issuer_demo',
-            'customer' => [
-                'identification' => '900123456',
-                'identification_type' => 'NIT',
-                'name' => 'Empresa Ejemplo SAS',
-            ],
-            'lines' => [
-                [
-                    'description' => 'Servicio de desarrollo',
-                    'quantity' => '1.00',
-                    'unit_price' => ['amount' => '100000.00', 'currency' => 'COP'],
-                    'taxes' => [['type' => 'VAT', 'rate' => '19.00']],
-                ],
-            ],
-        ], $idempotencyKey);
-
-        return $result->invoice->id;
+        return $this->app->make(CreateInvoice::class)
+            ->execute(InvoicePayload::minimal(), $idempotencyKey)
+            ->invoice
+            ->id;
     }
 }

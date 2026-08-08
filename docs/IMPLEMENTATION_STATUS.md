@@ -112,6 +112,10 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   que escapen del montaje y secretos no serializables;
 - almacenamiento de evidencia con referencia derivada del digest, disco
   configurable y opción explícita para el request SOAP;
+- contrato HTTP suficiente para construir un documento FEV 1.9: hora de emisión
+  con desfase obligatorio, condiciones de pago, unidad por línea y datos
+  tributarios y dirección completa del adquirente, con mapper a los detalles de
+  emisión y prueba de que el mapper FEV 1.9 no necesita constantes ocultas;
 
 ## No implementado todavía
 
@@ -120,7 +124,8 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   perfiles de emisor, los secretos y el almacén de evidencia ya existen, pero
   ningún job los usa todavía;
 - reserva atómica de numeración y de secuencias XML/ZIP;
-- contrato HTTP suficiente para construir un `InvoiceGenerationContext`;
+- validación de valores contra los catálogos oficiales DIAN (Q-004): hoy los
+  códigos se validan sólo por forma y se conservan literales;
 - mapeo de descuentos/cargos/retenciones y cierre de hallazgos Schematron;
 - requests/parsers/clientes para `SendBillSync`, `GetNumberingRange` y demás
   operaciones;
@@ -133,7 +138,6 @@ La API actual es solo para desarrollo local. No debe exponerse públicamente has
 
 ## Próximo corte recomendado
 
-Completar el contrato de entrada de `POST /v1/invoices` hasta que baste para
-construir un `InvoiceGenerationContext`, y después la reserva atómica de
-numeración y secuencias. Con eso el pipeline local de construcción y validación
-puede ejecutarse sin red. Ver `NEXT_STEPS.md`.
+Reserva atómica de numeración y de secuencias XML/ZIP. Es lo último que falta
+para que el pipeline local de construcción y validación pueda ejecutarse sin
+red. Ver `NEXT_STEPS.md`.

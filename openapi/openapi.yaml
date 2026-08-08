@@ -160,21 +160,123 @@ components:
           type: string
           pattern: '^[A-Z]{3}$'
           examples: [COP]
+    PartyAddress:
+      type: object
+      description: >-
+        Postal address of a party. `municipality_code` and `department_code`
+        come from the official `Municipio-2.1.gc` and `Departamentos-2.1.gc`
+        value lists shipped with the FEV 1.9 toolbox.
+      required: [line, city_name, municipality_code, department_name, department_code]
+      properties:
+        line:
+          type: string
+          minLength: 1
+        city_name:
+          type: string
+          minLength: 1
+        municipality_code:
+          type: string
+          minLength: 1
+        department_name:
+          type: string
+          minLength: 1
+        department_code:
+          type: string
+          minLength: 1
+        country_code:
+          type: string
+          pattern: '^[A-Z]{2}$'
+          default: CO
+        country_name:
+          type: string
+          default: Colombia
+        postal_zone:
+          type: [string, 'null']
     Party:
       type: object
-      required: [identification, name]
+      description: >-
+        A party as FEV 1.9 needs it. The DIAN-coded fields are required because
+        the specification requires them and Tribux refuses to invent a default
+        for a fiscal value. Each names the official value list it comes from.
+        Once the catalogue work in Q-004 lands, Tribux will be able to derive
+        several of them from `identification_type`, and they will become
+        optional without breaking this contract.
+      required:
+        - identification
+        - verification_digit
+        - name
+        - account_type_code
+        - identification_scheme_name
+        - tax_level_code
+        - tax_level_list_name
+        - tax_scheme_id
+        - tax_scheme_name
+        - address
       properties:
         identification:
           type: string
+          description: Tax identification without the check digit.
+        verification_digit:
+          type: string
+          pattern: '^[0-9]+$'
+          description: DIAN check digit of the identification.
         identification_type:
           type: string
-          description: Stable Tribux code; mapping to DIAN catalog is adapter responsibility.
+          description: >-
+            Stable Tribux code such as NIT or CC. Informational for now; the
+            DIAN value travels in `identification_scheme_name`.
+        identification_scheme_name:
+          type: string
+          description: DIAN document type from `TipoDocumento-2.1.gc`.
+          examples: ['31']
+        account_type_code:
+          type: string
+          description: DIAN organisation type from `TipoOrganizacion-2.1.gc`.
+          examples: ['1']
+        tax_level_code:
+          type: string
+          description: DIAN tax responsibilities from `TipoResponsabilidad-2.1.gc`.
+          examples: ['O-48']
+        tax_level_list_name:
+          type: string
+          description: Version name of the responsibility list used above.
+          examples: ['48']
+        tax_scheme_id:
+          type: string
+          description: DIAN tax scheme from `TipoImpuesto-2.1.gc`.
+          examples: ['01']
+        tax_scheme_name:
+          type: string
+          examples: [IVA]
+        address:
+          $ref: '#/components/schemas/PartyAddress'
+        registration_prefix:
+          type: [string, 'null']
+        telephone:
+          type: [string, 'null']
         name:
           type: string
           minLength: 1
         email:
           type: string
           format: email
+    PaymentInput:
+      type: object
+      description: >-
+        Payment terms of the invoice. `means_id` comes from `FormasPago-2.1.gc`
+        and `means_code` from `MediosPago-2.1.gc`.
+      required: [means_id, means_code, due_date]
+      properties:
+        means_id:
+          type: string
+          examples: ['1']
+        means_code:
+          type: string
+          examples: ['10']
+        due_date:
+          type: string
+          format: date
+          examples: ['2026-08-08']
     TaxInput:
       type: object
       required: [type, rate]
@@ -188,7 +290,7 @@ components:
           examples: ['19.00']
     InvoiceLineInput:
       type: object
-      required: [description, quantity, unit_price]
+      required: [description, quantity, unit_code, unit_price]
       properties:
         description:
           type: string
@@ -196,24 +298,48 @@ components:
         quantity:
           type: string
           pattern: '^[0-9]+(?:\.[0-9]{1,6})?$'
+        unit_code:
+          type: string
+          description: >-
+            DIAN unit of measure from `UnidadesMedida-2.1.gc`. Required per
+            line: there is no safe default unit for an arbitrary item.
+          examples: ['94']
         unit_price:
           $ref: '#/components/schemas/Money'
         taxes:
           type: array
+          description: >-
+            May be empty. Tribux does not invent an exempt or excluded tax code
+            for a line without taxes; declaring that correctly is the issuer's
+            responsibility until the catalogue work in Q-004 lands.
           items:
             $ref: '#/components/schemas/TaxInput'
     CreateInvoiceRequest:
       type: object
-      required: [issuer_id, customer, lines]
+      required: [issuer_id, issued_at, customer, payment, lines]
       properties:
         issuer_id:
           type: string
           description: Internal issuer/tenant identifier.
         number:
           type: string
-          description: Optional in early design; final numbering workflow is pending ADR/compliance.
+          description: >-
+            Optional. When present, Tribux issues the invoice with this number
+            and only checks it against the authorised range. When absent,
+            Tribux reserves the next number from the issuer resolution. Those
+            are the only two modes; there is no implicit third.
+        issued_at:
+          type: string
+          format: date-time
+          description: >-
+            Issue instant with an explicit UTC offset. It is supplied by the
+            client because the issue moment is a business event, not the moment
+            a worker happened to run. A value without an offset is rejected.
+          examples: ['2026-08-08T10:30:00-05:00']
         customer:
           $ref: '#/components/schemas/Party'
+        payment:
+          $ref: '#/components/schemas/PaymentInput'
         lines:
           type: array
           minItems: 1
