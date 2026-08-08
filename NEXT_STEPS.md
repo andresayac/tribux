@@ -6,7 +6,7 @@
 
 **Branch activa:** `main`
 
-**HEAD al actualizar este documento:** `bda637f`
+**HEAD al actualizar este documento:** `d1e5c0a`
 
 **Estado del producto:** pre-alpha; componentes DIAN validados localmente, sin
 evidencia de aceptación real en habilitación.
@@ -60,6 +60,8 @@ La rama estaba limpia y sincronizada con `origin/main` al crear este archivo.
 Los últimos cortes verticales publicados son:
 
 ```text
+d1e5c0a feat(api): enrich the invoice issuance contract
+34f3998 docs: describe issuer, secret and evidence mounts
 bda637f feat(api): store invoice evidence bytes
 4f33201 feat(api): load signing credentials securely
 dc7b34d feat(api): resolve versioned issuer profiles
@@ -68,16 +70,14 @@ da43d85 feat(api): persist invoice processing attempts
 5a71222 feat(core): guard invoice status transitions
 506b732 docs(architecture): define invoice processing flow
 4b7a190 docs: add detailed continuation plan
-8dcb7f3 feat(dian): query test-set ZIP status
-1081ff5 feat(dian): build FEV 1.9 submission ZIPs
 ```
 
 Último quality gate completo observado, con caja FEV 1.9 y Saxon disponibles:
 
 ```text
 Paquetes: 106 tests, 498 assertions
-API:       53 tests, 259 assertions
-Total:    159 tests, 757 assertions
+API:       65 tests, 300 assertions
+Total:    171 tests, 798 assertions
 PHPStan:   sin errores
 Pint:      sin errores
 Lint PHP:  sin errores
@@ -183,10 +183,11 @@ conectar de forma segura y auditable las piezas que ya existen.
 
 ## 3. Bloqueos y deudas que deben conocerse antes del worker
 
-### 3.1 El payload HTTP todavía no alcanza para construir una factura DIAN
+### 3.1 El payload HTTP ya alcanza, salvo el número — resuelto en P0.4
 
-El request actual contiene `issuer_id`, cliente básico, líneas, precio e
-impuestos.
+Desde P0.4, el request exige `issued_at` con desfase UTC explícito, `payment`
+(`means_id`, `means_code`, `due_date`), `unit_code` por línea y los datos
+tributarios y la dirección completa del adquirente.
 
 Desde P0.3, el perfil de emisor ya resuelve:
 
@@ -201,16 +202,15 @@ Desde P0.3, el perfil de emisor ya resuelve:
 - política de escala/redondeo;
 - zona horaria del emisor.
 
-Sigue faltando y **debe decidirse en P0.4/P0.5**:
+Sigue faltando una sola entrada: el **número de factura reservado**, que es
+P0.5. Un test de `InvoiceIssuanceMapperTest` ya arma un `InvoiceGenerationContext`
+real con perfil + detalles + secretos y lo mapea a FEV 1.9, con el número como
+único valor simulado.
 
-- número de factura reservado (P0.5);
-- datos tributarios y dirección completa del adquirente: request o registro;
-- código de unidad por línea;
-- medio de pago y fecha de vencimiento;
-- fecha/hora de emisión con zona horaria explícita del documento.
-
-No llenar estos campos con constantes silenciosas. Hay que decidir qué pertenece
-al request y qué se resuelve desde catálogos versionados.
+Deuda consciente: los valores de catálogo DIAN se validan sólo por forma y se
+conservan literales. Validarlos contra las listas oficiales es Q-004. Cuando
+exista el catálogo versionado, Tribux podrá derivar varios de ellos desde
+`identification_type` y volverlos opcionales sin romper el contrato.
 
 ### 3.2 `issuer_id` aún no es un contexto de seguridad
 
@@ -392,40 +392,36 @@ Nota de seguridad: `IssuerSecrets` rechaza la serialización en vez de
 redactarla. Un job Laravel debe seguir serializando sólo `invoice_id` y
 resolver los secretos al ejecutarse.
 
-### P0.4 — Completar el contrato mínimo de entrada para generar UBL
+### P0.4 — Contrato mínimo de entrada para generar UBL — **HECHO** (`d1e5c0a`)
 
-Comparar `CreateInvoiceRequest`, OpenAPI, dominio e
-`InvoiceGenerationContext`. Diseñar los campos faltantes sin copiar el UBL en la
-API.
+Decisiones tomadas, en `openapi/openapi.yaml` primero:
 
-Decisiones mínimas:
+- **adquirente:** datos tributarios y dirección viajan en el request. No existe
+  todavía un registro de terceros y crearlo aquí habría sido inventar alcance;
+- **`unit_code`:** obligatorio por línea. No hay unidad por defecto segura;
+- **pago:** `payment.means_id`, `payment.means_code` y `payment.due_date`
+  obligatorios;
+- **número:** exactamente dos modos. Si viene, Tribux lo usa y sólo lo valida
+  contra el rango autorizado; si no viene, Tribux reserva el siguiente. No hay
+  un tercer modo implícito;
+- **códigos tributarios:** se aceptan los valores oficiales DIAN, validados por
+  forma y conservados literales, y cada campo declara en el schema la lista de
+  la que proviene. Construir un vocabulario estable de Tribux por encima exige
+  el inventario de catálogos de Q-004; hacerlo antes habría sido inventar un
+  mapeo;
+- **líneas sin impuesto:** permitidas. Tribux no inventa un código de exento o
+  excluido, porque eso requiere fuente;
+- **zona horaria:** `issued_at` exige desfase UTC explícito y lo aporta el
+  cliente, porque el momento de emisión es un hecho de negocio, no el instante
+  en que corrió un worker;
+- **descuentos y cargos:** fuera de este perfil, siguen en P1.
 
-- dirección y datos tributarios del adquirente: request o registro existente;
-- `unit_code` por línea;
-- medio/forma de pago y vencimiento;
-- número: proporcionado, reservado por Tribux o ambas modalidades explícitas;
-- responsabilidades/códigos tributarios estables de Tribux y su mapper DIAN;
-- descuentos/cargos fuera o dentro del primer perfil;
-- zona horaria obligatoria de emisión;
-- política para impuestos ausentes y líneas sin impuesto, basada en fuente.
+Los datos DIAN del adquirente llegan al mapper FEV 1.9 por
+`App\Application\Invoices\Issuance\InvoiceIssuanceDetails`, no por
+`packages/core`: el dominio sólo gana la dirección genérica que ya modelaba.
 
-Toda modificación se diseña primero en `openapi/openapi.yaml`. Si rompe el
-contrato pre-alpha, registrarla en `CHANGELOG.md`, actualizar ejemplos y tests.
-No inventar dirección, unidad, medio de pago o DV por defecto.
-
-Definition of Done:
-
-- OpenAPI válido;
-- request Laravel y schema OpenAPI equivalentes;
-- mapper JSON -> core cubierto con tests positivos/negativos;
-- mapper core -> FEV 1.9 no necesita constantes ocultas de negocio;
-- ejemplo `examples/invoice.minimal.json` actualizado.
-
-Commit sugerido:
-
-```text
-feat(api): enrich the invoice issuance contract
-```
+Los tests se construyen sobre `examples/invoice.minimal.json`, de modo que el
+ejemplo publicado no puede desviarse del contrato.
 
 ### P0.5 — Numeración y secuencias atómicas
 
@@ -927,27 +923,28 @@ Al finalizar cada corte:
 
 Empezar exactamente así:
 
-1. verificar que `HEAD` incluye `bda637f` o commits posteriores;
+1. verificar que `HEAD` incluye `d1e5c0a` o commits posteriores;
 2. ejecutar el quality gate completo con artefactos oficiales;
 3. leer ADR 0016 antes de tocar el flujo de procesamiento;
-4. completar el contrato mínimo necesario para construir UBL (P0.4);
-5. abordar numeración/secuencias (P0.5);
-6. conectar pipeline local sin red (P0.6);
-7. firmar/empaquetar (P0.7);
-8. integrar envío/consulta con fakes (P0.8);
-9. habilitar job Laravel (P0.9);
-10. crear comando controlado de habilitación (P0.10);
-11. coordinar credenciales humanas y primera evidencia real (P0.11).
+4. abordar numeración/secuencias (P0.5);
+5. conectar pipeline local sin red (P0.6);
+6. firmar/empaquetar (P0.7);
+7. integrar envío/consulta con fakes (P0.8);
+8. habilitar job Laravel (P0.9);
+9. crear comando controlado de habilitación (P0.10);
+10. coordinar credenciales humanas y primera evidencia real (P0.11).
 
 No comenzar la siguiente sesión implementando directamente un POST a DIAN desde
 el controller ni desde un job.
 
-Con intentos, perfiles, secretos y evidencia ya disponibles, lo único que
-todavía impide construir un `InvoiceGenerationContext` real es la entrada:
-faltan campos en el request (dirección y datos tributarios del adquirente,
-`unit_code`, medio de pago, vencimiento, zona horaria) y falta el número
-reservado. Ese es el trabajo de P0.4 y P0.5, en ese orden, y P0.4 empieza por
-`openapi/openapi.yaml`.
+Intentos, perfiles, secretos, evidencia y contrato de entrada ya existen. La
+única entrada que falta para construir un `InvoiceGenerationContext` real es el
+número reservado, y con él las secuencias anuales de los nombres XML y ZIP. Eso
+es P0.5, y hasta que esté no tiene sentido empezar P0.6.
+
+Recordatorio para P0.5: Q-008 sigue abierta. `Fev19FileSequence` acepta el token
+exacto y no lo incrementa a propósito. No añadir autoincremento sin resolver la
+regla o convertirla en política explícita y trazable.
 
 ---
 
