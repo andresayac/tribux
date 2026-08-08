@@ -197,8 +197,15 @@ dian_business         la respuesta se parseó y contiene rechazo o errores DIAN
 internal              defecto de Tribux
 ```
 
-Sólo `transport_safe`, `internal` y parte de `configuration` son candidatas a
-reintento automático. `transport_ambiguous` nunca lo es.
+Sólo `transport_safe` e `internal` son candidatas a reintento automático.
+`configuration` y `input_validation` requieren intervención antes de reintentar,
+y `transport_ambiguous` nunca es reintentable: obliga a consultar.
+
+Tomar posesión de una factura es una operación distinta por etapa
+(`claimForBuilding`, `claimForSubmission`, `claimForPolling`), de modo que el
+job de construcción no puede enviar y el job de consulta no puede reenviar.
+Cerrar un intento sin cambiar el estado es legítimo y necesario: una consulta
+no concluyente produce evidencia, no un veredicto.
 
 ## Consecuencias
 

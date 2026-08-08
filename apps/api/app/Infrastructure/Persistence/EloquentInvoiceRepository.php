@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence;
 
+use App\Application\Contracts\IdGenerator;
 use App\Application\Invoices\Contracts\InvoiceRepository;
 use App\Application\Invoices\Data\InvoiceCreationResult;
 use App\Application\Invoices\Data\InvoiceView;
 use App\Application\Invoices\Exceptions\IdempotencyConflict;
+use App\Application\Invoices\Processing\StatusChangeSource;
 use App\Infrastructure\Persistence\Models\IdempotencyKeyRecord;
 use App\Infrastructure\Persistence\Models\InvoiceRecord;
+use App\Infrastructure\Persistence\Models\InvoiceStatusHistoryRecord;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Illuminate\Database\QueryException;
@@ -21,6 +24,8 @@ use Tribux\Core\Invoice\InvoiceStatus;
 final class EloquentInvoiceRepository implements InvoiceRepository
 {
     private const string OPERATION = 'create_invoice';
+
+    public function __construct(private readonly IdGenerator $ids) {}
 
     public function createIdempotently(
         Invoice $invoice,
@@ -44,6 +49,18 @@ final class EloquentInvoiceRepository implements InvoiceRepository
                     'cufe' => null,
                     'created_at' => $invoice->createdAt,
                     'updated_at' => $invoice->createdAt,
+                ]);
+
+                // The audit trail starts at creation so the history is complete
+                // even for an invoice no worker ever picks up.
+                InvoiceStatusHistoryRecord::query()->create([
+                    'id' => $this->ids->generate(),
+                    'invoice_id' => (string) $invoice->id,
+                    'attempt_id' => null,
+                    'from_status' => null,
+                    'to_status' => $invoice->status,
+                    'source' => StatusChangeSource::Api,
+                    'occurred_at' => $invoice->createdAt,
                 ]);
 
                 IdempotencyKeyRecord::query()->create([

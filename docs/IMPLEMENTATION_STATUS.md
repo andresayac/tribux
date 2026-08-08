@@ -36,7 +36,9 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 | Descubrimiento/validación XSD | `packages/dian/src/Artifacts` y `packages/dian/src/Validation` |
 | Artefactos oficiales verificables | `resources/dian/fev/1.9/manifest.json` |
 | Matriz FEV 1.9 | `docs/compliance/fev-1.9.md` |
+| Máquina de estados de factura | `packages/core/src/Invoice/InvoiceStatusTransition.php` |
 | Casos de uso API | `apps/api/app/Application` |
+| Puerto de intentos/evidencia | `apps/api/app/Application/Invoices/Processing` |
 | Adaptadores Laravel/Eloquent | `apps/api/app/Infrastructure` |
 | Entrada HTTP | `apps/api/app/Http` y `apps/api/routes/api.php` |
 | Persistencia | `apps/api/database/migrations` |
@@ -90,11 +92,24 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   `DianResponse`, miembros nulos, Fault, HTTP y XML crudo;
 - generador de nombres XML/ZIP FEV 1.9 con token hexadecimal explícito y
   empaquetado reproducible para cardinalidad síncrona/asíncrona;
+- máquina de estados interna del core con transiciones legales, estados
+  terminales y `awaiting_reconciliation` para envíos de resultado desconocido;
+- intentos de procesamiento numerados con un único intento abierto por factura,
+  garantizado por índice único parcial en PostgreSQL y SQLite;
+- historial append-only de transiciones con origen (`api`, `worker`, `dian`,
+  `operator`) y referencia al intento;
+- metadatos de evidencia con referencia de almacenamiento, SHA-256, tamaño y
+  media type, sin guardar los bytes en la base de datos;
+- taxonomía local de errores por intento y preservación de `ZipKey`, status HTTP
+  y proyección de mensajes DIAN;
 
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
-- worker de construcción y envío de factura;
+- worker de construcción y envío de factura; la persistencia de intentos y
+  evidencia ya existe, pero ningún job la usa todavía;
+- adaptador de `EvidenceStore`: hoy sólo se persisten metadatos de artefactos
+  que otro componente debe haber almacenado;
 - mapeo de descuentos/cargos/retenciones y cierre de hallazgos Schematron;
 - requests/parsers/clientes para `SendBillSync`, `GetNumberingRange` y demás
   operaciones;
@@ -107,7 +122,8 @@ La API actual es solo para desarrollo local. No debe exponerse públicamente has
 
 ## Próximo corte recomendado
 
-Conectar el worker de factura al pipeline de construcción/firma/empaquetado/envío
-y preparar un script reproducible para el primer envío controlado en
-habilitación. Después, implementar `SendBillSync` y `GetNumberingRange`. En
-paralelo, completar descuentos, cargos y retenciones del dominio.
+Introducir los perfiles de emisor y los proveedores de secretos detrás de
+puertos, con dobles en memoria, y añadir el adaptador de `EvidenceStore`. Con
+eso, el pipeline local de construcción/validación ya puede escribir intentos y
+evidencia reales sin tocar la red. Después, firma/empaquetado, envío con fakes
+y por último el job Laravel. Ver `NEXT_STEPS.md`.

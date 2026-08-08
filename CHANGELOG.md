@@ -32,6 +32,8 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Cliente `DianStatusZipClient` para consultar `ZipKey` y conservar íntegro `ArrayOfDianResponse`.
 - ADR 0016 con la frontera de orquestación, el modelo de evidencia y la máquina de estados del procesamiento de factura.
 - Máquina de estados interna explícita en el core, con transiciones legales, estados terminales y guardas contra saltos de etapa.
+- Persistencia de intentos de procesamiento, historial append-only de estados y metadatos de evidencia con hash SHA-256, tamaño y referencia de almacenamiento.
+- Posesión exclusiva por factura mediante índice único parcial e intentos numerados, con tomas de posesión separadas para construcción, envío y consulta.
 
 ### Changed
 
