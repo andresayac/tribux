@@ -79,7 +79,7 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 - [ ] Retries solo para fallos seguros/reintentables.
 - [ ] Circuit breaker opcional, medido antes de introducirlo.
 - [x] Normalización inicial de `SendTestSetAsync` y SOAP Fault sin perder XML original.
-- [x] Normalización inicial de `DianResponse` para `GetStatus`, sin inferir semántica de estados.
+- [x] Normalización inicial de `DianResponse` para `GetStatus`/`GetStatusZip`, sin inferir semántica de estados.
 - [ ] Persistencia de evidencia técnica necesaria.
 
 ### 1.6 E2E

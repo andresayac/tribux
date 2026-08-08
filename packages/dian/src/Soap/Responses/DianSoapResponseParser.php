@@ -101,8 +101,71 @@ final class DianSoapResponseParser
             return new GetStatusResponse($response->statusCode, $response->body, null, null);
         }
 
+        return new GetStatusResponse(
+            httpStatusCode: $response->statusCode,
+            rawXml: $response->body,
+            result: $this->parseDianResponse($xpath, $result, $response),
+            fault: null,
+        );
+    }
+
+    public function parseGetStatusZip(DianSoapHttpResponse $response): GetStatusZipResponse
+    {
+        [$xpath, $body] = $this->responseContext($response);
+        $fault = $this->faultFromBody($xpath, $body, $response);
+
+        if ($fault !== null) {
+            return new GetStatusZipResponse(
+                httpStatusCode: $response->statusCode,
+                rawXml: $response->body,
+                results: null,
+                fault: $fault,
+            );
+        }
+
+        $result = $this->oneElement(
+            $xpath,
+            './wcf:GetStatusZipResponse/wcf:GetStatusZipResult',
+            $response,
+            'GetStatusZipResult is missing or duplicated.',
+            $body,
+        );
+
+        if ($this->isNil($result)) {
+            return new GetStatusZipResponse($response->statusCode, $response->body, null, null);
+        }
+
+        $responseNodes = $xpath->query('./dian:DianResponse', $result);
+
+        if ($responseNodes === false) {
+            throw new DianSoapProtocolException('Could not query GetStatusZip DianResponse entries.', $response);
+        }
+
+        $results = [];
+
+        foreach ($responseNodes as $responseNode) {
+            if ($responseNode instanceof DOMElement) {
+                $results[] = $this->isNil($responseNode)
+                    ? null
+                    : $this->parseDianResponse($xpath, $responseNode, $response);
+            }
+        }
+
+        return new GetStatusZipResponse(
+            httpStatusCode: $response->statusCode,
+            rawXml: $response->body,
+            results: $results,
+            fault: null,
+        );
+    }
+
+    private function parseDianResponse(
+        DOMXPath $xpath,
+        DOMElement $element,
+        DianSoapHttpResponse $response,
+    ): DianResponse {
         $errorMessages = [];
-        $errorNodes = $xpath->query('./dian:ErrorMessage/arrays:string', $result);
+        $errorNodes = $xpath->query('./dian:ErrorMessage/arrays:string', $element);
 
         if ($errorNodes === false) {
             throw new DianSoapProtocolException('Could not query DianResponse error messages.', $response);
@@ -114,23 +177,16 @@ final class DianSoapResponseParser
             }
         }
 
-        $dianResponse = new DianResponse(
+        return new DianResponse(
             errorMessages: $errorMessages,
-            isValid: $this->nullableBoolean($xpath, './dian:IsValid', $result, $response),
-            statusCode: $this->nullableText($xpath, './dian:StatusCode', $result, $response),
-            statusDescription: $this->nullableText($xpath, './dian:StatusDescription', $result, $response),
-            statusMessage: $this->nullableText($xpath, './dian:StatusMessage', $result, $response),
-            xmlBase64Bytes: $this->nullableBase64($xpath, './dian:XmlBase64Bytes', $result, $response),
-            xmlBytes: $this->nullableBase64($xpath, './dian:XmlBytes', $result, $response),
-            xmlDocumentKey: $this->nullableText($xpath, './dian:XmlDocumentKey', $result, $response),
-            xmlFileName: $this->nullableText($xpath, './dian:XmlFileName', $result, $response),
-        );
-
-        return new GetStatusResponse(
-            httpStatusCode: $response->statusCode,
-            rawXml: $response->body,
-            result: $dianResponse,
-            fault: null,
+            isValid: $this->nullableBoolean($xpath, './dian:IsValid', $element, $response),
+            statusCode: $this->nullableText($xpath, './dian:StatusCode', $element, $response),
+            statusDescription: $this->nullableText($xpath, './dian:StatusDescription', $element, $response),
+            statusMessage: $this->nullableText($xpath, './dian:StatusMessage', $element, $response),
+            xmlBase64Bytes: $this->nullableBase64($xpath, './dian:XmlBase64Bytes', $element, $response),
+            xmlBytes: $this->nullableBase64($xpath, './dian:XmlBytes', $element, $response),
+            xmlDocumentKey: $this->nullableText($xpath, './dian:XmlDocumentKey', $element, $response),
+            xmlFileName: $this->nullableText($xpath, './dian:XmlFileName', $element, $response),
         );
     }
 

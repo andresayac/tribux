@@ -122,9 +122,11 @@ status HTTP y XML original; XML malformado conserva errores libxml estructurados
 transporte y normaliza el `DianResponse` definido por el WSDL. Conserva la lista
 de errores —incluidos elementos nulos—, validez opcional, códigos y mensajes sin
 interpretarlos, ambos campos binarios en su representación Base64 original y
-decodificada, claves, nombres, status HTTP y XML crudo. Todavía faltan las demás
-operaciones que devuelven `DianResponse` y una prueba contra habilitación; por eso
-no se afirma aceptación remota.
+decodificada, claves, nombres, status HTTP y XML crudo. `DianStatusZipClient`
+consume el `ZipKey` de un envío asíncrono y conserva el `ArrayOfDianResponse` en
+orden, incluidos resultado o miembros nulos. Todavía faltan las demás operaciones
+que devuelven `DianResponse` y una prueba contra habilitación; por eso no se
+afirma aceptación remota.
 
 ## Operaciones del primer corte
 
@@ -148,9 +150,9 @@ no permite concluir que sea opcional para las reglas de negocio.
 
 `DianResponse` conserva, entre otros, lista de errores, validez, código,
 descripción, mensaje, XML y clave/nombre del documento. Tribux ya lo normaliza
-para `GetStatus` sin perder la respuesta original ni convertir los errores DIAN
-en un único string. Esa normalización no asigna por sí sola significado de
-aceptación o rechazo a cada código.
+para `GetStatus` y `GetStatusZip` sin perder la respuesta original ni convertir
+los errores DIAN en un único string. Esa normalización no asigna por sí sola
+significado de aceptación o rechazo a cada código.
 
 ## CUFE-SHA384 confirmado
 

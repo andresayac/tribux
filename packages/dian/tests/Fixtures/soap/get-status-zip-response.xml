@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic fixture derived from habilitation WSDL SHA-256 da576f42d725b3c8626bc146c26d6eb4c510d849c160290eb04dae0340f5d7b8. -->
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+  <s:Body>
+    <GetStatusZipResponse xmlns="http://wcf.dian.colombia">
+      <GetStatusZipResult xmlns:a="http://schemas.datacontract.org/2004/07/DianResponse"
+                          xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <a:DianResponse>
+          <a:ErrorMessage xmlns:b="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          <a:IsValid>true</a:IsValid>
+          <a:StatusCode>synthetic-1</a:StatusCode>
+          <a:StatusDescription>First synthetic status</a:StatusDescription>
+          <a:StatusMessage i:nil="true"/>
+          <a:XmlBase64Bytes>PEFwcGxpY2F0aW9uUmVzcG9uc2UgaWQ9IjEiLz4=</a:XmlBase64Bytes>
+          <a:XmlBytes i:nil="true"/>
+          <a:XmlDocumentKey>document-key-1</a:XmlDocumentKey>
+          <a:XmlFileName>fv08001972680001900000001.xml</a:XmlFileName>
+        </a:DianResponse>
+        <a:DianResponse>
+          <a:ErrorMessage xmlns:b="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+            <b:string>Original synthetic DIAN message</b:string>
+          </a:ErrorMessage>
+          <a:IsValid>false</a:IsValid>
+          <a:StatusCode>synthetic-2</a:StatusCode>
+          <a:StatusDescription>Second synthetic status</a:StatusDescription>
+          <a:StatusMessage>Uninterpreted package member status</a:StatusMessage>
+          <a:XmlDocumentKey>document-key-2</a:XmlDocumentKey>
+          <a:XmlFileName>nc08001972680001900000002.xml</a:XmlFileName>
+        </a:DianResponse>
+        <a:DianResponse i:nil="true"/>
+      </GetStatusZipResult>
+    </GetStatusZipResponse>
+  </s:Body>
+</s:Envelope>

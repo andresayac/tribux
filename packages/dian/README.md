@@ -124,10 +124,11 @@ recibió el documento. Los errores de cURL conservan código, mensaje original y
 categoría normalizada.
 
 `Soap/Responses/DianSoapResponseParser` interpreta `SendTestSetAsync` y
-`GetStatus` sin perder el XML recibido. Expone `ZipKey`, cada
-`XmlParamsResponseTrackId` y los campos completos de `DianResponse`; un SOAP 1.2
-Fault conserva código, subcódigo, razones por idioma y detalle aun con HTTP 500.
-Valores opcionales ausentes permanecen `null` en lugar de inventar defaults.
+`GetStatus`/`GetStatusZip` sin perder el XML recibido. Expone `ZipKey`, cada
+`XmlParamsResponseTrackId`, los campos completos de `DianResponse` y la lista de
+respuestas de un paquete; un SOAP 1.2 Fault conserva código, subcódigo, razones
+por idioma y detalle aun con HTTP 500. Valores opcionales ausentes permanecen
+`null` en lugar de inventar defaults.
 
 Para habilitación, `DianTestSetClient` compone las tres etapas sin ocultarlas:
 
@@ -136,6 +137,7 @@ use DateTimeImmutable;
 use Tribux\Dian\DianEnvironment;
 use Tribux\Dian\Soap\DianEndpoint;
 use Tribux\Dian\Soap\DianStatusClient;
+use Tribux\Dian\Soap\DianStatusZipClient;
 use Tribux\Dian\Soap\DianTestSetClient;
 use Tribux\Dian\Soap\Requests\SendTestSetAsyncRequest;
 
@@ -150,6 +152,12 @@ $result = (new DianTestSetClient(
 $status = (new DianStatusClient(
     DianEndpoint::defaultFor(DianEnvironment::Habilitation),
 ))->get($documentTrackId, $credentials, new DateTimeImmutable('now'));
+
+if ($result->zipKey !== null) {
+    $packageStatus = (new DianStatusZipClient(
+        DianEndpoint::defaultFor(DianEnvironment::Habilitation),
+    ))->get($result->zipKey, $credentials, new DateTimeImmutable('now'));
+}
 ```
 
 El cliente no reintenta ni persiste evidencia. El nombre/ZIP deben haberse
@@ -157,8 +165,7 @@ construido según el perfil DIAN y la aplicación debe conservar `rawXml` en su
 almacenamiento seguro. `DianStatusClient` conserva los códigos y mensajes DIAN,
 pero no decide por sí mismo si un código representa aceptación o rechazo. En el
 ejemplo, `$documentTrackId` es el identificador de seguimiento del documento;
-el `zipKey` de `SendTestSetAsync` corresponde a `GetStatusZip`, operación aún
-pendiente en este corte.
+el `zipKey` de `SendTestSetAsync` se consulta con `DianStatusZipClient`.
 
 `Documents/Fev19/Invoice/UnsignedInvoiceXmlGenerator` produce XML determinista
 sin firma con `sts:DianExtensions`. Su contrato exige que numeración, software, CUFE,
