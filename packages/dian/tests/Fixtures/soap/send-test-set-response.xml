@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic fixture derived from habilitation WSDL SHA-256 da576f42d725b3c8626bc146c26d6eb4c510d849c160290eb04dae0340f5d7b8. -->
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+  <s:Body>
+    <SendTestSetAsyncResponse xmlns="http://wcf.dian.colombia">
+      <SendTestSetAsyncResult xmlns:a="http://schemas.datacontract.org/2004/07/UploadDocumentResponse"
+                              xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <a:ErrorMessageList xmlns:b="http://schemas.datacontract.org/2004/07/XmlParamsResponseTrackId">
+          <b:XmlParamsResponseTrackId>
+            <b:DocumentKey>document-key-1</b:DocumentKey>
+            <b:ProcessedMessage>Batch queued by DIAN</b:ProcessedMessage>
+            <b:SenderCode>00</b:SenderCode>
+            <b:Success>true</b:Success>
+            <b:XmlFileName>fv0000001230002600000001.xml</b:XmlFileName>
+          </b:XmlParamsResponseTrackId>
+          <b:XmlParamsResponseTrackId>
+            <b:DocumentKey i:nil="true"/>
+            <b:ProcessedMessage>Original rejection context</b:ProcessedMessage>
+            <b:SenderCode>99</b:SenderCode>
+            <b:Success>false</b:Success>
+            <b:XmlFileName i:nil="true"/>
+          </b:XmlParamsResponseTrackId>
+        </a:ErrorMessageList>
+        <a:ZipKey>zip-track-id</a:ZipKey>
+      </SendTestSetAsyncResult>
+    </SendTestSetAsyncResponse>
+  </s:Body>
+</s:Envelope>

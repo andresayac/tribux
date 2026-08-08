@@ -92,7 +92,12 @@ reformatearlo. Verifica certificado/hostname, exige TLS 1.2 como mínimo, no sig
 redirects y requiere timeouts y límite de respuesta explícitos o sus defaults
 seguros. No hace retries: después de un timeout no se puede asumir que DIAN no
 recibió el documento. Los errores de cURL conservan código, mensaje original y
-categoría normalizada; el parser de respuestas SOAP es el siguiente corte.
+categoría normalizada.
+
+`Soap/Responses/DianSoapResponseParser` interpreta `SendTestSetAsync` sin perder
+el XML recibido. Expone `ZipKey` y cada `XmlParamsResponseTrackId`; un SOAP 1.2
+Fault conserva código, subcódigo, razones por idioma y detalle aun con HTTP 500.
+Valores opcionales ausentes permanecen `null` en lugar de inventar defaults.
 
 `Documents/Fev19/Invoice/UnsignedInvoiceXmlGenerator` produce XML determinista
 sin firma con `sts:DianExtensions`. Su contrato exige que numeración, software, CUFE,

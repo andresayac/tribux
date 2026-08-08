@@ -108,8 +108,16 @@ timeout de conexión y total, y limita bytes de respuesta. Los fallos conservan
 código/mensaje cURL y una categoría normalizada, pero no se reintentan
 automáticamente porque un timeout de envío puede tener resultado remoto ambiguo.
 La integración se prueba contra un servidor TLS local con CA, certificado y clave
-efímeros. Falta parsear respuestas/faults y probar el servicio de habilitación;
-por eso no se afirma aceptación remota.
+efímeros.
+
+El parser inicial de `SendTestSetAsync` sigue los contratos
+`UploadDocumentResponse` y `XmlParamsResponseTrackId` del WSDL. Conserva `ZipKey`,
+clave/nombre del documento, código del emisor, indicador opcional de éxito y
+mensaje procesado. También modela SOAP 1.2 Fault con código, subcódigo, razones
+multilenguaje y `Detail`, incluso cuando HTTP sea 500. En todos los casos mantiene
+status HTTP y XML original; XML malformado conserva errores libxml estructurados.
+Falta implementar `DianResponse` para estado/envío síncrono y probar el servicio
+de habilitación, por eso no se afirma aceptación remota.
 
 ## Operaciones del primer corte
 

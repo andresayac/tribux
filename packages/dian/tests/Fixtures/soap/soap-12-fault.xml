@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic SOAP 1.2 Fault fixture; it is not a captured DIAN response. -->
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"
+            xmlns:wcf="http://wcf.dian.colombia">
+  <s:Body>
+    <s:Fault>
+      <s:Code>
+        <s:Value>s:Sender</s:Value>
+        <s:Subcode><s:Value>wcf:InvalidSecurity</s:Value></s:Subcode>
+      </s:Code>
+      <s:Reason>
+        <s:Text xml:lang="es-CO">La firma de seguridad no es válida.</s:Text>
+        <s:Text xml:lang="en-US">The security signature is invalid.</s:Text>
+      </s:Reason>
+      <s:Detail>
+        <wcf:ValidationCode>SEC-001</wcf:ValidationCode>
+      </s:Detail>
+    </s:Fault>
+  </s:Body>
+</s:Envelope>

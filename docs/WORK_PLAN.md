@@ -77,7 +77,8 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 - [x] Timeouts explícitos de conexión y solicitud.
 - [ ] Retries solo para fallos seguros/reintentables.
 - [ ] Circuit breaker opcional, medido antes de introducirlo.
-- [ ] Normalización de respuestas.
+- [x] Normalización inicial de `SendTestSetAsync` y SOAP Fault sin perder XML original.
+- [ ] Normalización de `DianResponse` para consultas/envío síncrono.
 - [ ] Persistencia de evidencia técnica necesaria.
 
 ### 1.6 E2E

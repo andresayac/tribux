@@ -80,13 +80,15 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   BinarySecurityToken y firma RSA-SHA256 del header `To`;
 - transporte cURL HTTPS con verificación TLS, timeouts explícitos, límite de
   respuesta, cero redirects/retries implícitos y errores estructurados;
+- parser de `UploadDocumentResponse` y SOAP 1.2 Fault que conserva campos DIAN,
+  detalle, status HTTP, XML original y errores libxml;
 
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
 - worker de construcción y envío de factura;
 - mapeo de descuentos/cargos/retenciones y cierre de hallazgos Schematron;
-- parsing y normalización de respuestas/faults SOAP DIAN;
+- parsing de `DianResponse` para estado/envío síncrono y respuestas de las demás operaciones;
 - normalización monetaria de descuentos/cargos/retenciones;
 - object storage y evidencia de auditoría;
 - pruebas en ambiente DIAN de habilitación;
