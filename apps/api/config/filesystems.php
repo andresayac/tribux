@@ -47,6 +47,19 @@ return [
             'report' => false,
         ],
 
+        /*
+         * Audit evidence: unsigned and signed XML, submission ZIPs and SOAP
+         * exchanges. The local driver is a development convenience only; point
+         * TRIBUX_EVIDENCE_DISK at durable object storage before production.
+         */
+        'evidence' => [
+            'driver' => 'local',
+            'root' => env('TRIBUX_EVIDENCE_PATH', storage_path('app/private/evidence')),
+            'serve' => false,
+            'throw' => true,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

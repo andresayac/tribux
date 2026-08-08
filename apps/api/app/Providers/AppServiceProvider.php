@@ -5,11 +5,13 @@ namespace App\Providers;
 use App\Application\Contracts\Clock;
 use App\Application\Contracts\IdGenerator;
 use App\Application\Invoices\Contracts\InvoiceRepository;
+use App\Application\Invoices\Processing\Contracts\EvidenceStore;
 use App\Application\Invoices\Processing\Contracts\InvoiceProcessingRepository;
 use App\Application\Issuers\Contracts\IssuerProfileProvider;
 use App\Application\Issuers\Contracts\IssuerSecretProvider;
 use App\Application\Issuers\Contracts\SigningCredentialsProvider;
 use App\Infrastructure\Clock\SystemClock;
+use App\Infrastructure\Evidence\DiskEvidenceStore;
 use App\Infrastructure\Identifiers\UuidV7Generator;
 use App\Infrastructure\Issuers\JsonFileIssuerProfileProvider;
 use App\Infrastructure\Issuers\Secrets\FileIssuerSecretProvider;
@@ -17,6 +19,7 @@ use App\Infrastructure\Issuers\Secrets\FileSigningCredentialsProvider;
 use App\Infrastructure\Issuers\Secrets\MountedSecretFiles;
 use App\Infrastructure\Persistence\EloquentInvoiceProcessingRepository;
 use App\Infrastructure\Persistence\EloquentInvoiceRepository;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -45,6 +48,15 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(IssuerSecretProvider::class, FileIssuerSecretProvider::class);
         $this->app->bind(SigningCredentialsProvider::class, FileSigningCredentialsProvider::class);
+
+        $this->app->singleton(EvidenceStore::class, function (): DiskEvidenceStore {
+            $disk = config('tribux.evidence.disk');
+
+            return new DiskEvidenceStore(
+                Storage::disk(is_string($disk) ? $disk : 'evidence'),
+                (bool) config('tribux.evidence.store_soap_requests'),
+            );
+        });
     }
 
     /**
