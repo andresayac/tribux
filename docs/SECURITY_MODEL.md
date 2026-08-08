@@ -55,7 +55,11 @@
 - los fallos de OpenSSL se reescriben: conservan la causa, no la contraseña ni
   el material de clave;
 - el request SOAP sólo se almacena como evidencia con opción explícita, porque
-  contiene el documento completo.
+  contiene el documento completo;
+- la respuesta de `GetNumberingRange` contiene la clave técnica de la
+  resolución: el valor queda encapsulado, redactado en depuración y no
+  serializable, y **no existe un tipo de evidencia para esa consulta**, porque
+  guardar su XML crudo guardaría un secreto.
 
 ## Logging
 

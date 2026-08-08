@@ -112,6 +112,11 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   que escapen del montaje y secretos no serializables;
 - almacenamiento de evidencia con referencia derivada del digest, disco
   configurable y opción explícita para el request SOAP;
+- autorizaciones de numeración en el core, reserva atómica de números y de
+  secuencias anuales XML/ZIP por libro de asientos, y codificación explícita del
+  consecutivo de nombre mientras Q-008 siga abierta;
+- cliente y parser de `GetNumberingRange` con la clave técnica de la respuesta
+  encapsulada, redactada y no serializable;
 - contrato HTTP suficiente para construir un documento FEV 1.9: hora de emisión
   con desfase obligatorio, condiciones de pago, unidad por línea y datos
   tributarios y dirección completa del adquirente, con mapper a los detalles de
@@ -127,8 +132,7 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 - validación de valores contra los catálogos oficiales DIAN (Q-004): hoy los
   códigos se validan sólo por forma y se conservan literales;
 - mapeo de descuentos/cargos/retenciones y cierre de hallazgos Schematron;
-- requests/parsers/clientes para `SendBillSync`, `GetNumberingRange` y demás
-  operaciones;
+- requests/parsers/clientes para `SendBillSync` y demás operaciones;
 - normalización monetaria de descuentos/cargos/retenciones;
 - object storage y evidencia de auditoría;
 - pruebas en ambiente DIAN de habilitación;

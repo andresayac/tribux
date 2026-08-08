@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic fixture derived from habilitation WSDL SHA-256 da576f42d725b3c8626bc146c26d6eb4c510d849c160290eb04dae0340f5d7b8. -->
+<!-- The technical key below is synthetic. A real response carries a secret. -->
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+  <s:Body>
+    <GetNumberingRangeResponse xmlns="http://wcf.dian.colombia">
+      <GetNumberingRangeResult xmlns:a="http://schemas.datacontract.org/2004/07/NumberRangeResponseList"
+                               xmlns:b="http://schemas.datacontract.org/2004/07/NumberRangeResponse"
+                               xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <a:OperationCode>100</a:OperationCode>
+        <a:OperationDescription>Synthetic operation description</a:OperationDescription>
+        <a:ResponseList>
+          <b:NumberRangeResponse>
+            <b:ResolutionNumber>18760000001</b:ResolutionNumber>
+            <b:ResolutionDate>2026-01-01</b:ResolutionDate>
+            <b:Prefix>SETP</b:Prefix>
+            <b:FromNumber>1</b:FromNumber>
+            <b:ToNumber>5000000</b:ToNumber>
+            <b:ValidDateFrom>2026-01-01</b:ValidDateFrom>
+            <b:ValidDateTo>2027-12-31</b:ValidDateTo>
+            <b:TechnicalKey>synthetic-technical-key</b:TechnicalKey>
+          </b:NumberRangeResponse>
+          <b:NumberRangeResponse>
+            <b:ResolutionNumber i:nil="true"/>
+            <b:ResolutionDate i:nil="true"/>
+            <b:Prefix i:nil="true"/>
+            <b:FromNumber>0</b:FromNumber>
+            <b:ToNumber>0</b:ToNumber>
+            <b:ValidDateFrom i:nil="true"/>
+            <b:ValidDateTo i:nil="true"/>
+            <b:TechnicalKey i:nil="true"/>
+          </b:NumberRangeResponse>
+          <b:NumberRangeResponse i:nil="true"/>
+        </a:ResponseList>
+      </GetNumberingRangeResult>
+    </GetNumberingRangeResponse>
+  </s:Body>
+</s:Envelope>

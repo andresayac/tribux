@@ -40,6 +40,7 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Modelo de autorización de numeración en el core, con rango, vigencia por día calendario y número reservado.
 - Codificación explícita del consecutivo de nombre FEV 1.9 (`decimal` o `hexadecimal`), sin valor por defecto mientras Q-008 siga abierta.
 - Reserva atómica de números de factura y de secuencias anuales XML/ZIP mediante libros de asientos con índices únicos, idempotente por factura y por dueño.
+- Cliente `DianNumberingRangeClient` y parser de `GetNumberingRange` con `NumberRangeResponseList` completo, miembros nulos, Fault, HTTP y XML crudo. La clave técnica que devuelve la respuesta queda encapsulada, redactada y no serializable.
 
 ### Changed
 

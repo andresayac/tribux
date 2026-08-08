@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic fixture: the service answers with a nil result list. -->
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+  <s:Body>
+    <GetNumberingRangeResponse xmlns="http://wcf.dian.colombia">
+      <GetNumberingRangeResult xmlns:a="http://schemas.datacontract.org/2004/07/NumberRangeResponseList"
+                               xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <a:OperationCode>404</a:OperationCode>
+        <a:OperationDescription i:nil="true"/>
+        <a:ResponseList i:nil="true"/>
+      </GetNumberingRangeResult>
+    </GetNumberingRangeResponse>
+  </s:Body>
+</s:Envelope>

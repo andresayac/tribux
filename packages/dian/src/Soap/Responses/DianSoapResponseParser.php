@@ -20,6 +20,8 @@ final class DianSoapResponseParser
     private const string NS_DIAN_RESPONSE = 'http://schemas.datacontract.org/2004/07/DianResponse';
     private const string NS_UPLOAD = 'http://schemas.datacontract.org/2004/07/UploadDocumentResponse';
     private const string NS_TRACK = 'http://schemas.datacontract.org/2004/07/XmlParamsResponseTrackId';
+    private const string NS_RANGE_LIST = 'http://schemas.datacontract.org/2004/07/NumberRangeResponseList';
+    private const string NS_RANGE = 'http://schemas.datacontract.org/2004/07/NumberRangeResponse';
     private const string NS_XSI = 'http://www.w3.org/2001/XMLSchema-instance';
     private const string NS_XML = 'http://www.w3.org/XML/1998/namespace';
 
@@ -159,6 +161,111 @@ final class DianSoapResponseParser
         );
     }
 
+    public function parseGetNumberingRange(DianSoapHttpResponse $response): GetNumberingRangeResponse
+    {
+        [$xpath, $body] = $this->responseContext($response);
+        $fault = $this->faultFromBody($xpath, $body, $response);
+
+        if ($fault !== null) {
+            return new GetNumberingRangeResponse(
+                httpStatusCode: $response->statusCode,
+                rawXml: $response->body,
+                result: null,
+                fault: $fault,
+            );
+        }
+
+        $result = $this->oneElement(
+            $xpath,
+            './wcf:GetNumberingRangeResponse/wcf:GetNumberingRangeResult',
+            $response,
+            'GetNumberingRangeResult is missing or duplicated.',
+            $body,
+        );
+
+        if ($this->isNil($result)) {
+            return new GetNumberingRangeResponse($response->statusCode, $response->body, null, null);
+        }
+
+        return new GetNumberingRangeResponse(
+            httpStatusCode: $response->statusCode,
+            rawXml: $response->body,
+            result: new NumberRangeResponseList(
+                operationCode: $this->nullableText($xpath, './rangelist:OperationCode', $result, $response),
+                operationDescription: $this->nullableText($xpath, './rangelist:OperationDescription', $result, $response),
+                ranges: $this->numberRanges($xpath, $result, $response),
+            ),
+            fault: null,
+        );
+    }
+
+    /** @return ?list<?NumberRangeResponse> */
+    private function numberRanges(
+        DOMXPath $xpath,
+        DOMElement $result,
+        DianSoapHttpResponse $response,
+    ): ?array {
+        $lists = $xpath->query('./rangelist:ResponseList', $result);
+
+        if ($lists === false || $lists->length > 1) {
+            throw new DianSoapProtocolException('ResponseList is duplicated or unreadable.', $response);
+        }
+
+        $list = $lists->item(0);
+
+        if (! $list instanceof DOMElement || $this->isNil($list)) {
+            return null;
+        }
+
+        $nodes = $xpath->query('./range:NumberRangeResponse', $list);
+
+        if ($nodes === false) {
+            throw new DianSoapProtocolException('Could not query NumberRangeResponse entries.', $response);
+        }
+
+        $ranges = [];
+
+        foreach ($nodes as $node) {
+            if (! $node instanceof DOMElement) {
+                continue;
+            }
+
+            $ranges[] = $this->isNil($node) ? null : new NumberRangeResponse(
+                resolutionNumber: $this->nullableText($xpath, './range:ResolutionNumber', $node, $response),
+                resolutionDate: $this->nullableText($xpath, './range:ResolutionDate', $node, $response),
+                prefix: $this->nullableText($xpath, './range:Prefix', $node, $response),
+                fromNumber: $this->nullableLong($xpath, './range:FromNumber', $node, $response),
+                toNumber: $this->nullableLong($xpath, './range:ToNumber', $node, $response),
+                validDateFrom: $this->nullableText($xpath, './range:ValidDateFrom', $node, $response),
+                validDateTo: $this->nullableText($xpath, './range:ValidDateTo', $node, $response),
+                technicalKey: $this->nullableText($xpath, './range:TechnicalKey', $node, $response),
+            );
+        }
+
+        return $ranges;
+    }
+
+    private function nullableLong(
+        DOMXPath $xpath,
+        string $query,
+        DOMNode $context,
+        DianSoapHttpResponse $response,
+    ): ?int {
+        $value = $this->nullableText($xpath, $query, $context, $response);
+
+        if ($value === null) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        if (preg_match('/\A[+-]?\d+\z/', $trimmed) !== 1) {
+            throw new DianSoapProtocolException('SOAP long has an invalid lexical value: '.$query, $response);
+        }
+
+        return (int) $trimmed;
+    }
+
     private function parseDianResponse(
         DOMXPath $xpath,
         DOMElement $element,
@@ -199,6 +306,8 @@ final class DianSoapResponseParser
         foreach ([
             'arrays' => self::NS_ARRAYS,
             'dian' => self::NS_DIAN_RESPONSE,
+            'range' => self::NS_RANGE,
+            'rangelist' => self::NS_RANGE_LIST,
             's' => self::NS_SOAP,
             'track' => self::NS_TRACK,
             'upload' => self::NS_UPLOAD,
