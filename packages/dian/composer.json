@@ -1,0 +1,15 @@
+{
+  "name": "tribux/dian",
+  "description": "DIAN integration ports and adapters for Tribux.",
+  "type": "library",
+  "license": "Apache-2.0",
+  "require": {
+    "php": "^8.4 || ^8.5",
+    "tribux/core": "dev-main"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tribux\\Dian\\": "src/"
+    }
+  }
+}

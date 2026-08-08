@@ -1,0 +1,80 @@
+name: tribux
+
+services:
+  api:
+    image: tribux-api:dev
+    build:
+      context: .
+      dockerfile: infra/docker/api/Dockerfile
+    command: ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"]
+    environment: &api_environment
+      APP_NAME: Tribux
+      APP_ENV: local
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY:-base64:gl8s5sQOSDLN0E4xNRMsN/uzj2BdLWjFtgTKbxsvI7o=}
+      APP_URL: http://localhost:8080
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB:-tribux}
+      DB_USERNAME: ${POSTGRES_USER:-tribux}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-tribux_dev_only}
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: array
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    image: tribux-api:dev
+    build:
+      context: .
+      dockerfile: infra/docker/api/Dockerfile
+    command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=60"]
+    environment: *api_environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tribux}
+      POSTGRES_USER: ${POSTGRES_USER:-tribux}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tribux_dev_only}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tribux} -d ${POSTGRES_DB:-tribux}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:

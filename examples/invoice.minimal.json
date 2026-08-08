@@ -1,0 +1,25 @@
+{
+  "issuer_id": "issuer_demo",
+  "customer": {
+    "identification": "900123456",
+    "identification_type": "NIT",
+    "name": "Empresa Ejemplo SAS",
+    "email": "facturacion@example.com"
+  },
+  "lines": [
+    {
+      "description": "Servicio de desarrollo",
+      "quantity": "1.00",
+      "unit_price": {
+        "amount": "100000.00",
+        "currency": "COP"
+      },
+      "taxes": [
+        {
+          "type": "VAT",
+          "rate": "19.00"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+.git
+.github
+.cache
+.env
+**/.env
+**/vendor
+**/node_modules
+**/storage/logs/*
+!**/storage/logs/.gitignore

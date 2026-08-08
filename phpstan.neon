@@ -1,0 +1,7 @@
+parameters:
+    level: max
+    paths:
+        - packages/core/src
+        - packages/dian/src
+    tmpDir: .cache/phpstan
+    treatPhpDocTypesAsCertain: false

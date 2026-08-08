@@ -1,0 +1,20 @@
+{
+  "project_name": "Tribux",
+  "status": "foundation-pre-alpha",
+  "generated_at": "2026-08-08T09:43:00-05:00",
+  "mission": "Open source, self-hosted API and reusable engine for Colombian electronic invoicing with DIAN interoperability.",
+  "primary_language": "PHP",
+  "api_framework_target": "Laravel 13",
+  "core_framework_agnostic": true,
+  "api_contract": "OpenAPI 3.1.1",
+  "dian_baseline": "FEV 1.9 (must be re-verified before compliance implementation)",
+  "license": "Apache-2.0",
+  "must_read": [
+    "AGENTS.md",
+    "docs/AI_AGENT_BRIEF.md",
+    "docs/PROJECT_VISION.md",
+    "docs/ARCHITECTURE.md",
+    "docs/WORK_PLAN.md",
+    "docs/DIAN_RESEARCH_BASELINE.md"
+  ]
+}

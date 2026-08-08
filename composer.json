@@ -1,0 +1,30 @@
+{
+  "name": "tribux/monorepo",
+  "description": "Tribux community monorepo foundation.",
+  "type": "project",
+  "license": "Apache-2.0",
+  "require": {
+    "php": "^8.4 || ^8.5",
+    "tribux/core": "dev-main",
+    "tribux/dian": "dev-main"
+  },
+  "require-dev": {
+    "php-parallel-lint/php-parallel-lint": "^1.4",
+    "phpstan/phpstan": "^2.1",
+    "phpunit/phpunit": "^12.5"
+  },
+  "repositories": [
+    { "type": "path", "url": "packages/core", "options": { "symlink": true } },
+    { "type": "path", "url": "packages/dian", "options": { "symlink": true } }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "sort-packages": true
+  },
+  "scripts": {
+    "analyse": "phpstan analyse --memory-limit=512M",
+    "lint": "parallel-lint packages --exclude vendor",
+    "test": "phpunit"
+  }
+}

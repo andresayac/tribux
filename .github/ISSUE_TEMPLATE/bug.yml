@@ -1,0 +1,22 @@
+name: Bug report
+description: Reportar un comportamiento reproducible
+title: "bug: "
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Pasos para reproducir
+    validations:
+      required: true
+  - type: textarea
+    id: dian
+    attributes:
+      label: Contexto DIAN (si aplica)
+      description: Ambiente, versión de anexo, código de rechazo. NO incluyas secretos ni PII.

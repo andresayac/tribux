@@ -1,0 +1,13 @@
+apis:
+  tribux@v1:
+    root: openapi/openapi.yaml
+
+extends:
+  - minimal
+
+rules:
+  no-server-example.com: off
+  no-unresolved-refs: error
+  no-unused-components: error
+  operation-operationId-unique: error
+  operation-operationId-url-safe: error

@@ -1,0 +1,19 @@
+{
+  "name": "tribux/core",
+  "description": "Framework-agnostic domain primitives for Tribux.",
+  "type": "library",
+  "license": "Apache-2.0",
+  "require": {
+    "php": "^8.4 || ^8.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tribux\\Core\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tribux\\Core\\Tests\\": "tests/"
+    }
+  }
+}
