@@ -32,14 +32,14 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 
 ### 1.1 Investigación técnica trazable
 
-- [ ] Descargar/registrar Anexo Técnico FEV vigente.
-- [ ] Inventariar XSD, XSLT/Schematron, catálogos y ejemplos oficiales.
-- [ ] Identificar WSDL/endpoints de habilitación y producción.
-- [ ] Documentar métodos SOAP necesarios.
-- [ ] Confirmar algoritmo y composición de CUFE.
-- [ ] Confirmar perfil de firma exigido y canonicalización.
-- [ ] Documentar ZIP/naming/AttachedDocument si aplica al flujo.
-- [ ] Crear matriz `requisito -> fuente -> implementación -> test`.
+- [x] Descargar/registrar Anexo Técnico FEV vigente.
+- [x] Inventariar XSD, XSLT/Schematron, catálogos y ejemplos oficiales.
+- [x] Identificar WSDL/endpoints de habilitación y producción.
+- [x] Documentar métodos SOAP necesarios para la primera factura.
+- [x] Confirmar algoritmo y composición de CUFE.
+- [ ] Confirmar perfil completo de firma y canonicalización (XAdES-EPES/C14N confirmados; política/hash pendientes).
+- [x] Documentar ZIP/naming/AttachedDocument si aplica al flujo.
+- [x] Crear matriz `requisito -> fuente -> implementación -> test`.
 
 ### 1.2 Modelo de dominio
 
@@ -67,7 +67,7 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 - [ ] DIAN model -> UBL XML.
 - [ ] Validación XSD local.
 - [ ] Validaciones adicionales documentadas.
-- [ ] CUFE con fixtures.
+- [x] CUFE con fixtures oficiales positivo/negativo.
 - [ ] Firma digital con certificado de pruebas.
 
 ### 1.5 Transporte DIAN

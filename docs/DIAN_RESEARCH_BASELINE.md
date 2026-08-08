@@ -31,23 +31,17 @@ Prioridad:
 
 ## Registro de artefactos
 
-Crear en el futuro:
+El registro reproducible ya existe en
+`resources/dian/fev/1.9/manifest.json`. Incluye URL oficial, fecha de
+verificación, tamaño y SHA-256 del anexo, caja, guía y WSDL de ambos ambientes.
 
-```text
-resources/dian/fev/1.9/manifest.json
-```
+Los binarios no se versionan: sus condiciones de redistribución siguen sin
+aclararse. `composer dian:fetch-fev19` los descarga a una ruta ignorada por Git
+y rechaza cualquier diferencia de tamaño o hash.
 
-con:
-
-- nombre del archivo;
-- URL oficial;
-- fecha de descarga;
-- SHA-256;
-- licencia/condiciones de redistribución revisadas;
-- propósito;
-- tests que dependen del artefacto.
-
-No copiar recursos oficiales al repositorio sin revisar si su redistribución es apropiada. Si no lo es, usar un script reproducible de descarga/verificación.
+Los hallazgos técnicos y límites de lo confirmado están en
+`docs/research/DIAN_FEV_1_9.md`; la trazabilidad regla-código-fixture-test está en
+`docs/compliance/fev-1.9.md`.
 
 ## Preguntas abiertas iniciales
 

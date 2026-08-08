@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "specification": "DIAN Factura Electronica de Venta",
+  "version": "1.9",
+  "verified_on": "2026-08-08",
+  "default_target": "var/dian/fev/1.9",
+  "redistribution": {
+    "status": "not-cleared",
+    "policy": "Download from the official source for local use; do not commit downloaded artifacts until their redistribution terms are reviewed."
+  },
+  "artifacts": [
+    {
+      "id": "technical-annex",
+      "file": "Anexo-Tecnico-Factura-Electronica-de-Venta-vr-1-9.pdf",
+      "url": "https://www.dian.gov.co/impuestos/factura-electronica/Documents/Anexo-Tecnico-Factura-Electronica-de-Venta-vr-1-9.pdf",
+      "bytes": 11137252,
+      "sha256": "1b4022ac112232cd525a455432b2bdfc977d2edcf14c1c7aa26f8ba93fe47ded",
+      "purpose": "Normative technical baseline and traceable rule source."
+    },
+    {
+      "id": "toolbox",
+      "file": "Caja-de-herramientas-FE-V19-V2026.zip",
+      "url": "https://www.dian.gov.co/impuestos/factura-electronica/Documents/Caja-de-herramientas-FE-V19-V2026.zip",
+      "bytes": 26271004,
+      "sha256": "2d6002d0a446ed9016ceb584cd18ae9b45ee532eb49d45cd999610d01b7266b3",
+      "purpose": "Official XSD, Schematron/XSLT, code lists and example inventory."
+    },
+    {
+      "id": "web-services-guide",
+      "file": "Guia-Herramienta-para-el-Consumo-de-Web-Services.pdf",
+      "url": "https://www.dian.gov.co/impuestos/factura-electronica/Documents/Guia-Herramienta-para-el-Consumo-de-Web-Services.pdf",
+      "bytes": 6304418,
+      "sha256": "0f78626fbba95700e178178369b187e39660878d5313859324e0f83a09471df7",
+      "purpose": "Official implementation guide; historical guidance must be reconciled with FEV 1.9 and live WSDLs."
+    },
+    {
+      "id": "habilitation-single-wsdl",
+      "file": "habilitation.single.wsdl",
+      "url": "https://vpfe-hab.dian.gov.co/WcfDianCustomerServices.svc?singleWsdl",
+      "bytes": 61727,
+      "sha256": "da576f42d725b3c8626bc146c26d6eb4c510d849c160290eb04dae0340f5d7b8",
+      "purpose": "Observed habilitation service contract snapshot."
+    },
+    {
+      "id": "production-single-wsdl",
+      "file": "production.single.wsdl",
+      "url": "https://vpfe.dian.gov.co/WcfDianCustomerServices.svc?singleWsdl",
+      "bytes": 61719,
+      "sha256": "f92a7e6ec77b21ad6a91cf38ceb54fed22ec754140b417506dfb53d6da0a53f4",
+      "purpose": "Observed production service contract snapshot."
+    }
+  ]
+}

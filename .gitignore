@@ -16,3 +16,4 @@ coverage/
 *.crt
 *.cer
 storage/private/
+/var/dian/

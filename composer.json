@@ -24,6 +24,7 @@
   },
   "scripts": {
     "analyse": "phpstan analyse --memory-limit=512M",
+    "dian:fetch-fev19": "@php tools/dian/fetch-artifacts.php resources/dian/fev/1.9/manifest.json",
     "lint": "parallel-lint packages --exclude vendor",
     "test": "phpunit"
   }

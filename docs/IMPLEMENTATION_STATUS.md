@@ -27,6 +27,10 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 | Contrato HTTP | `openapi/openapi.yaml` |
 | Dominio PHP puro | `packages/core/src` |
 | Puerto de transporte DIAN | `packages/dian/src/Contracts/DianGateway.php` |
+| CUFE FEV 1.9 | `packages/dian/src/Cufe` |
+| Perfil de endpoints/operaciones | `packages/dian/src/Soap` |
+| Artefactos oficiales verificables | `resources/dian/fev/1.9/manifest.json` |
+| Matriz FEV 1.9 | `docs/compliance/fev-1.9.md` |
 | Casos de uso API | `apps/api/app/Application` |
 | Adaptadores Laravel/Eloquent | `apps/api/app/Infrastructure` |
 | Entrada HTTP | `apps/api/app/Http` y `apps/api/routes/api.php` |
@@ -45,14 +49,18 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 - errores RFC 9457 `application/problem+json` para validación, conflicto y no encontrado;
 - paquetes `tribux/core` y `tribux/dian` enlazados por Composer path repositories;
 - PHPUnit, PHPStan nivel máximo para paquetes, Pint y Redocly CLI;
-- stack local API + worker + PostgreSQL 18 + Redis 8.
+- stack local API + worker + PostgreSQL 18 + Redis 8;
+- CUFE-SHA384 FEV 1.9 contra el ejemplo oficial positivo y un fixture negativo;
+- códigos de ambiente, defaults de endpoints y acciones SOAP iniciales
+  documentados y cubiertos por tests;
+- manifiesto reproducible con hashes de anexo, caja, guía y WSDL oficiales.
 
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
 - worker de construcción y envío de factura;
-- recursos técnicos oficiales registrados y verificados;
-- modelo DIAN FEV 1.9, UBL, XSD, CUFE, XAdES y SOAP;
+- ejecución local de XSD/Schematron y modelo UBL FEV 1.9;
+- normalización monetaria previa al CUFE, XAdES y cliente SOAP seguro;
 - object storage y evidencia de auditoría;
 - pruebas en ambiente DIAN de habilitación;
 - documentación web local y proceso de release.
@@ -61,4 +69,6 @@ La API actual es solo para desarrollo local. No debe exponerse públicamente has
 
 ## Próximo corte recomendado
 
-Completar investigación trazable de FEV 1.9 y, en paralelo, cerrar el modelo de dominio genérico pendiente (direcciones en el contrato, moneda explícita, descuentos/cargos y totales). La primera regla DIAN solo debe entrar después de registrar fuente oficial, versión y fixture según `AGENTS.md`.
+Cerrar el perfil de firma XAdES-EPES y construir el primer modelo de documento
+DIAN versionado. En paralelo, completar el dominio genérico que alimentará ese
+modelo (numeración, fechas/zonas, moneda, descuentos/cargos y totales).

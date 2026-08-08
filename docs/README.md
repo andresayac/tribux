@@ -7,6 +7,8 @@
 - `IMPLEMENTATION_STATUS.md` — mapa de lo implementado, límites y siguiente corte.
 - `API_GUIDELINES.md` — contrato HTTP.
 - `DIAN_RESEARCH_BASELINE.md` — fuentes y baseline DIAN.
+- `research/DIAN_FEV_1_9.md` — investigación técnica verificada para FEV 1.9.
+- `compliance/fev-1.9.md` — matriz viva de reglas FEV 1.9.
 - `COMPLIANCE_MATRIX_TEMPLATE.md` — trazabilidad regla/fuente/test.
 - `TESTING_STRATEGY.md` — estrategia de QA/compliance.
 - `SECURITY_MODEL.md` — amenazas/controles.

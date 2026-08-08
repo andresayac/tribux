@@ -1,0 +1,11 @@
+{
+  "source": {
+    "document": "Anexo Tecnico Factura Electronica de Venta 1.9",
+    "url": "https://www.dian.gov.co/impuestos/factura-electronica/Documents/Anexo-Tecnico-Factura-Electronica-de-Venta-vr-1-9.pdf",
+    "sections": "11.1-11.2",
+    "pages": "654-659"
+  },
+  "invalid_field": "line_extension_amount",
+  "invalid_value": "1500000.0",
+  "expected_error": "lineExtensionAmount must be a decimal string with exactly two decimal places."
+}
