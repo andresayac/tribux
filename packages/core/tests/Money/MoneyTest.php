@@ -8,7 +8,10 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tribux\Core\Decimal\DecimalRoundingMode;
 use Tribux\Core\Money\Money;
+use Tribux\Core\Quantity\Quantity;
+use Tribux\Core\Tax\TaxRate;
 
 final class MoneyTest extends TestCase
 {
@@ -27,5 +30,26 @@ final class MoneyTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new Money($amount, 'COP');
+    }
+
+    #[Test]
+    public function it_performs_exact_currency_safe_operations(): void
+    {
+        $unitPrice = new Money('19999.99', 'COP');
+        $lineTotal = $unitPrice->multipliedBy(new Quantity('3.00'), 2, DecimalRoundingMode::HalfUp);
+        $tax = $lineTotal->percentage(new TaxRate('19.00'), 2, DecimalRoundingMode::HalfUp);
+
+        self::assertSame('59999.97', $lineTotal->amount);
+        self::assertSame('11399.99', $tax->amount);
+        self::assertSame('71399.96', $lineTotal->plus($tax)->amount);
+    }
+
+    #[Test]
+    public function it_rejects_arithmetic_across_currencies(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('same currency');
+
+        (new Money('1.00', 'COP'))->plus(new Money('1.00', 'USD'));
     }
 }
