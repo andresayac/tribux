@@ -6,7 +6,7 @@
 
 **Branch activa:** `main`
 
-**HEAD al actualizar este documento:** `8273cf1`
+**HEAD al actualizar este documento:** `bda637f`
 
 **Estado del producto:** pre-alpha; componentes DIAN validados localmente, sin
 evidencia de aceptación real en habilitación.
@@ -60,6 +60,9 @@ La rama estaba limpia y sincronizada con `origin/main` al crear este archivo.
 Los últimos cortes verticales publicados son:
 
 ```text
+bda637f feat(api): store invoice evidence bytes
+4f33201 feat(api): load signing credentials securely
+dc7b34d feat(api): resolve versioned issuer profiles
 8273cf1 refactor(dian): deprecate the flattening submission gateway
 da43d85 feat(api): persist invoice processing attempts
 5a71222 feat(core): guard invoice status transitions
@@ -67,17 +70,14 @@ da43d85 feat(api): persist invoice processing attempts
 4b7a190 docs: add detailed continuation plan
 8dcb7f3 feat(dian): query test-set ZIP status
 1081ff5 feat(dian): build FEV 1.9 submission ZIPs
-8e6c357 feat(dian): query and parse document status
-0b050ac feat(dian): add test-set client facade
-0ce788d feat(dian): parse test-set SOAP responses
 ```
 
 Último quality gate completo observado, con caja FEV 1.9 y Saxon disponibles:
 
 ```text
 Paquetes: 106 tests, 498 assertions
-API:       24 tests, 134 assertions
-Total:    130 tests, 632 assertions
+API:       53 tests, 259 assertions
+Total:    159 tests, 757 assertions
 PHPStan:   sin errores
 Pint:      sin errores
 Lint PHP:  sin errores
@@ -171,6 +171,9 @@ Ya disponible y probado, sin consumidor todavía:
   -> claimForBuilding / claimForSubmission / claimForPolling
   -> advance / recordRemoteExchange / recordEvidence
   -> succeed / fail / requeue
+  IssuerProfileProvider
+  IssuerSecretProvider / SigningCredentialsProvider
+  EvidenceStore
 ```
 
 El próximo milestone no consiste en crear otro algoritmo aislado. Consiste en
@@ -183,26 +186,31 @@ conectar de forma segura y auditable las piezas que ya existen.
 ### 3.1 El payload HTTP todavía no alcanza para construir una factura DIAN
 
 El request actual contiene `issuer_id`, cliente básico, líneas, precio e
-impuestos. `InvoiceGenerationContext` requiere además, entre otros:
+impuestos.
+
+Desde P0.3, el perfil de emisor ya resuelve:
 
 - ambiente DIAN;
 - resolución/autorización, prefijo y rango autorizado;
-- número de factura reservado;
-- clave técnica de la resolución;
-- software ID y PIN;
+- clave técnica de la resolución (secreto);
+- software ID y PIN (identidad pública + secreto);
 - datos tributarios y dirección completa del emisor;
-- datos tributarios y dirección completa del adquirente;
-- códigos de identificación, responsabilidades y esquema tributario;
-- `CustomizationID` e `InvoiceTypeCode` confirmados para el caso;
-- fecha/hora de emisión con zona horaria explícita;
-- medio de pago y fecha de vencimiento;
-- código de unidad por línea;
+- `CustomizationID` e `InvoiceTypeCode`;
 - mapeo de impuestos del core a códigos/nombres DIAN;
-- política explícita de escala/redondeo.
+- unidades permitidas;
+- política de escala/redondeo;
+- zona horaria del emisor.
 
-No llenar estos campos con constantes silenciosas. Hay que decidir qué proviene
-de la configuración del emisor, qué pertenece al request y qué se resuelve desde
-catálogos versionados.
+Sigue faltando y **debe decidirse en P0.4/P0.5**:
+
+- número de factura reservado (P0.5);
+- datos tributarios y dirección completa del adquirente: request o registro;
+- código de unidad por línea;
+- medio de pago y fecha de vencimiento;
+- fecha/hora de emisión con zona horaria explícita del documento.
+
+No llenar estos campos con constantes silenciosas. Hay que decidir qué pertenece
+al request y qué se resuelve desde catálogos versionados.
 
 ### 3.2 `issuer_id` aún no es un contexto de seguridad
 
@@ -259,9 +267,8 @@ Implementado en P0.2 (`da43d85`):
 
 Pendiente todavía:
 
-- adaptador de `EvidenceStore`: hoy sólo se persisten metadatos, nadie escribe
-  los bytes;
-- decisión de object storage concreto y política de retención (Q-005);
+- elegir el almacenamiento de objetos concreto de producción y la política de
+  retención (Q-005); el disco por defecto es local y sólo sirve para desarrollo;
 - proyección del estado DIAN hacia la API.
 
 El XML y ZIP no deben vivir únicamente en el filesystem efímero del contenedor.
@@ -354,59 +361,36 @@ Queda fuera de este corte, a propósito:
 - cualquier job que use el repositorio (ver P0.9);
 - exponer intentos o evidencia por HTTP.
 
-### P0.3 — Configuración del emisor y proveedores de secretos
+### P0.3 — Configuración del emisor, secretos y evidencia — **HECHO** (`dc7b34d`, `4f33201`, `bda637f`)
 
-Crear puertos explícitos, con dobles en memoria para tests:
+Implementado:
 
-- `IssuerProfileProvider` o nombre equivalente para datos no secretos;
-- `SigningCredentialsProvider` para obtener credenciales en memoria;
-- proveedor/reserva de numeración;
-- proveedor/reserva de secuencias XML/ZIP;
-- `EvidenceStore`;
-- reloj ya existe en la aplicación; reutilizarlo.
+- `IssuerProfileProvider` con `JsonFileIssuerProfileProvider` sobre un archivo
+  montado (`TRIBUX_ISSUERS_FILE`) y `ArrayIssuerProfileProvider` como doble;
+- `IssuerProfile` con tercero emisor, resolución/rango, identidad de software,
+  código de proveedor `ppp`, `customizationId`, `invoiceTypeCode`, mapeos
+  tributarios, unidades permitidas, política de cálculo, zona horaria,
+  `testSetId` y `credential_reference`;
+- `IssuerSecretProvider` (PIN + clave técnica) y `SigningCredentialsProvider`
+  (P12/PFX o PEM), separados para que la etapa de construcción no cargue una
+  clave privada, sobre montajes de un secreto por archivo
+  (`TRIBUX_SECRETS_PATH`), con dobles en memoria;
+- `EvidenceStore` con `DiskEvidenceStore` sobre disco configurable
+  (`TRIBUX_EVIDENCE_DISK`) e `InMemoryEvidenceStore`, referencia derivada del
+  digest y opción explícita para el request SOAP;
+- `examples/issuer.habilitation.json` sintético, cargado por un test para que
+  no se pudra, y verificado como libre de campos secretos;
+- documentación de montajes y variables en `docs/DEPLOYMENT.md`, sin valores
+  reales.
 
-Separar:
+Queda fuera de este corte, a propósito:
 
-**Configuración no secreta**
+- reserva de numeración y de secuencias XML/ZIP (es P0.5, no P0.3);
+- cualquier diseño de HSM o secret manager: los puertos ya permiten añadirlo.
 
-- NIT/DV, razón social, dirección y responsabilidades;
-- ambiente;
-- software ID;
-- resolución, prefijo, rango y vigencia;
-- códigos DIAN aplicables;
-- `testSetId` para habilitación;
-- referencia al secreto/certificado;
-- código de proveedor `ppp`;
-- tax mappings y unidades permitidas.
-
-**Secretos**
-
-- PIN de software;
-- clave técnica;
-- P12/PFX/PEM y contraseña;
-- cualquier token externo.
-
-Los secretos no deben llegar en el JSON público ni guardarse en logs, jobs
-serializados o tablas de evidencia. Si un job Laravel se serializa, debe guardar
-solo `invoice_id` y resolver secretos al ejecutarse.
-
-Para el primer flujo local se puede implementar un adaptador de configuración
-explícita/montada, siempre detrás del puerto. No diseñar todavía un HSM.
-
-Definition of Done:
-
-- fixture de emisor sintético sin secretos reales;
-- proveedor secreto falso en tests;
-- errores claros cuando falta configuración;
-- ninguna contraseña aparece al serializar excepciones/DTO/jobs;
-- documentación de variables/mounts sin valores reales.
-
-Commits sugeridos:
-
-```text
-feat(api): resolve versioned issuer profiles
-feat(api): load signing credentials securely
-```
+Nota de seguridad: `IssuerSecrets` rechaza la serialización en vez de
+redactarla. Un job Laravel debe seguir serializando sólo `invoice_id` y
+resolver los secretos al ejecutarse.
 
 ### P0.4 — Completar el contrato mínimo de entrada para generar UBL
 
@@ -943,25 +927,27 @@ Al finalizar cada corte:
 
 Empezar exactamente así:
 
-1. verificar que `HEAD` incluye `8273cf1` o commits posteriores;
+1. verificar que `HEAD` incluye `bda637f` o commits posteriores;
 2. ejecutar el quality gate completo con artefactos oficiales;
 3. leer ADR 0016 antes de tocar el flujo de procesamiento;
-4. introducir perfiles de emisor y proveedores de secretos con fakes, más el
-   adaptador de `EvidenceStore` (P0.3);
-5. completar el contrato mínimo necesario para construir UBL (P0.4);
-6. abordar numeración/secuencias (P0.5);
-7. conectar pipeline local sin red (P0.6);
-8. firmar/empaquetar (P0.7);
-9. integrar envío/consulta con fakes (P0.8);
-10. habilitar job Laravel (P0.9);
-11. crear comando controlado de habilitación (P0.10);
-12. coordinar credenciales humanas y primera evidencia real (P0.11).
+4. completar el contrato mínimo necesario para construir UBL (P0.4);
+5. abordar numeración/secuencias (P0.5);
+6. conectar pipeline local sin red (P0.6);
+7. firmar/empaquetar (P0.7);
+8. integrar envío/consulta con fakes (P0.8);
+9. habilitar job Laravel (P0.9);
+10. crear comando controlado de habilitación (P0.10);
+11. coordinar credenciales humanas y primera evidencia real (P0.11).
 
 No comenzar la siguiente sesión implementando directamente un POST a DIAN desde
-el controller ni desde un job. Con la persistencia de intentos ya disponible, el
-siguiente trabajo correcto es resolver de dónde salen la configuración del
-emisor, los secretos y los bytes de evidencia; sin eso el pipeline de P0.6 no
-puede construir un `InvoiceGenerationContext` real.
+el controller ni desde un job.
+
+Con intentos, perfiles, secretos y evidencia ya disponibles, lo único que
+todavía impide construir un `InvoiceGenerationContext` real es la entrada:
+faltan campos en el request (dirección y datos tributarios del adquirente,
+`unit_code`, medio de pago, vencimiento, zona horaria) y falta el número
+reservado. Ese es el trabajo de P0.4 y P0.5, en ese orden, y P0.4 empieza por
+`openapi/openapi.yaml`.
 
 ---
 

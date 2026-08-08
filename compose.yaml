@@ -25,6 +25,13 @@ services:
       REDIS_CLIENT: phpredis
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      # Issuer configuration and secrets are mounted by the operator; see
+      # docs/DEPLOYMENT.md. Empty by default so a clean clone still boots.
+      TRIBUX_ISSUERS_FILE: ${TRIBUX_ISSUERS_FILE:-}
+      TRIBUX_SECRETS_PATH: ${TRIBUX_SECRETS_PATH:-}
+      TRIBUX_EVIDENCE_DISK: ${TRIBUX_EVIDENCE_DISK:-evidence}
+      TRIBUX_EVIDENCE_PATH: ${TRIBUX_EVIDENCE_PATH:-}
+      TRIBUX_EVIDENCE_STORE_SOAP_REQUESTS: "${TRIBUX_EVIDENCE_STORE_SOAP_REQUESTS:-false}"
     ports:
       - "${APP_PORT:-8080}:8080"
     depends_on:

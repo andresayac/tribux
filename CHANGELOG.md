@@ -34,6 +34,9 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Máquina de estados interna explícita en el core, con transiciones legales, estados terminales y guardas contra saltos de etapa.
 - Persistencia de intentos de procesamiento, historial append-only de estados y metadatos de evidencia con hash SHA-256, tamaño y referencia de almacenamiento.
 - Posesión exclusiva por factura mediante índice único parcial e intentos numerados, con tomas de posesión separadas para construcción, envío y consulta.
+- Perfiles de emisor versionados detrás de un puerto, cargados desde un archivo JSON montado, con validación por campo y ejemplo sintético publicable.
+- Proveedores de secretos separados para PIN/clave técnica y credenciales de firma, sobre montajes de un secreto por archivo, con secretos no serializables.
+- Almacenamiento de evidencia detrás de un puerto, con referencia derivada del digest, disco configurable y almacenamiento opcional del request SOAP.
 
 ### Changed
 

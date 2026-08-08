@@ -40,6 +40,23 @@
 - SBOM y dependency scanning;
 - releases firmadas (roadmap).
 
+## Manejo de secretos implementado
+
+- configuración no secreta y secretos viajan por caminos distintos: un archivo
+  JSON montado para la primera, un secreto por archivo para los segundos;
+- el `credential_reference` del emisor se valida como un único segmento de ruta
+  seguro antes de tocar el filesystem;
+- los secretos se leen en el momento de usarse y no se cachean;
+- `IssuerSecrets` rechaza la serialización en vez de redactarla, de modo que un
+  job en cola que intente llevar un PIN falla en desarrollo en lugar de filtrar
+  en producción;
+- `json_encode` de un objeto de secretos devuelve `{}` y `print_r` aparece
+  redactado;
+- los fallos de OpenSSL se reescriben: conservan la causa, no la contraseña ni
+  el material de clave;
+- el request SOAP sólo se almacena como evidencia con opción explícita, porque
+  contiene el documento completo.
+
 ## Logging
 
 Nunca registrar:

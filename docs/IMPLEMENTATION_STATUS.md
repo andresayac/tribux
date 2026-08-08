@@ -39,6 +39,9 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 | Máquina de estados de factura | `packages/core/src/Invoice/InvoiceStatusTransition.php` |
 | Casos de uso API | `apps/api/app/Application` |
 | Puerto de intentos/evidencia | `apps/api/app/Application/Invoices/Processing` |
+| Perfiles y secretos de emisor | `apps/api/app/Application/Issuers` |
+| Almacén de evidencia | `apps/api/app/Infrastructure/Evidence` |
+| Configuración Tribux | `apps/api/config/tribux.php` y `.env.example` |
 | Adaptadores Laravel/Eloquent | `apps/api/app/Infrastructure` |
 | Entrada HTTP | `apps/api/app/Http` y `apps/api/routes/api.php` |
 | Persistencia | `apps/api/database/migrations` |
@@ -102,14 +105,22 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   media type, sin guardar los bytes en la base de datos;
 - taxonomía local de errores por intento y preservación de `ZipKey`, status HTTP
   y proyección de mensajes DIAN;
+- perfiles de emisor no secretos cargados desde archivo JSON montado, validados
+  por campo y con ejemplo sintético verificado por tests;
+- proveedores de secretos separados para PIN/clave técnica y credenciales de
+  firma, sobre montajes de un secreto por archivo, con rechazo de referencias
+  que escapen del montaje y secretos no serializables;
+- almacenamiento de evidencia con referencia derivada del digest, disco
+  configurable y opción explícita para el request SOAP;
 
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
-- worker de construcción y envío de factura; la persistencia de intentos y
-  evidencia ya existe, pero ningún job la usa todavía;
-- adaptador de `EvidenceStore`: hoy sólo se persisten metadatos de artefactos
-  que otro componente debe haber almacenado;
+- worker de construcción y envío de factura; la persistencia de intentos, los
+  perfiles de emisor, los secretos y el almacén de evidencia ya existen, pero
+  ningún job los usa todavía;
+- reserva atómica de numeración y de secuencias XML/ZIP;
+- contrato HTTP suficiente para construir un `InvoiceGenerationContext`;
 - mapeo de descuentos/cargos/retenciones y cierre de hallazgos Schematron;
 - requests/parsers/clientes para `SendBillSync`, `GetNumberingRange` y demás
   operaciones;
@@ -122,8 +133,7 @@ La API actual es solo para desarrollo local. No debe exponerse públicamente has
 
 ## Próximo corte recomendado
 
-Introducir los perfiles de emisor y los proveedores de secretos detrás de
-puertos, con dobles en memoria, y añadir el adaptador de `EvidenceStore`. Con
-eso, el pipeline local de construcción/validación ya puede escribir intentos y
-evidencia reales sin tocar la red. Después, firma/empaquetado, envío con fakes
-y por último el job Laravel. Ver `NEXT_STEPS.md`.
+Completar el contrato de entrada de `POST /v1/invoices` hasta que baste para
+construir un `InvoiceGenerationContext`, y después la reserva atómica de
+numeración y secuencias. Con eso el pipeline local de construcción y validación
+puede ejecutarse sin red. Ver `NEXT_STEPS.md`.

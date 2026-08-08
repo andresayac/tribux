@@ -54,7 +54,10 @@ return [
          */
         'evidence' => [
             'driver' => 'local',
-            'root' => env('TRIBUX_EVIDENCE_PATH', storage_path('app/private/evidence')),
+            // ?: rather than a default argument: an empty environment variable
+            // is a real value to Laravel, and an empty root would silently
+            // write evidence to the filesystem root.
+            'root' => env('TRIBUX_EVIDENCE_PATH') ?: storage_path('app/private/evidence'),
             'serve' => false,
             'throw' => true,
             'report' => false,
