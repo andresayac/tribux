@@ -2,8 +2,9 @@
 
 **Corte de verificación:** 2026-08-08
 
-**Alcance:** primera factura de venta en habilitación con construcción, firma y
-validación local; no cubre todavía envío SOAP ni aceptación real en DIAN.
+**Alcance:** primera factura de venta en habilitación con construcción, firma,
+validación local y cliente SOAP inicial; no cubre todavía un envío real ni
+aceptación en DIAN.
 
 ## Autoridad y versión
 
@@ -116,8 +117,14 @@ clave/nombre del documento, código del emisor, indicador opcional de éxito y
 mensaje procesado. También modela SOAP 1.2 Fault con código, subcódigo, razones
 multilenguaje y `Detail`, incluso cuando HTTP sea 500. En todos los casos mantiene
 status HTTP y XML original; XML malformado conserva errores libxml estructurados.
-Falta implementar `DianResponse` para estado/envío síncrono y probar el servicio
-de habilitación, por eso no se afirma aceptación remota.
+
+`DianStatusClient` construye `GetStatus`, lo envía mediante el mismo puerto de
+transporte y normaliza el `DianResponse` definido por el WSDL. Conserva la lista
+de errores —incluidos elementos nulos—, validez opcional, códigos y mensajes sin
+interpretarlos, ambos campos binarios en su representación Base64 original y
+decodificada, claves, nombres, status HTTP y XML crudo. Todavía faltan las demás
+operaciones que devuelven `DianResponse` y una prueba contra habilitación; por eso
+no se afirma aceptación remota.
 
 ## Operaciones del primer corte
 
@@ -140,9 +147,10 @@ WSDL es `GetStatusZip`. Que un campo figure `minOccurs=0` en el XSD del servicio
 no permite concluir que sea opcional para las reglas de negocio.
 
 `DianResponse` conserva, entre otros, lista de errores, validez, código,
-descripción, mensaje, XML y clave/nombre del documento. Tribux debe normalizarlo
-sin perder la respuesta original ni convertir los errores DIAN en un único
-string.
+descripción, mensaje, XML y clave/nombre del documento. Tribux ya lo normaliza
+para `GetStatus` sin perder la respuesta original ni convertir los errores DIAN
+en un único string. Esa normalización no asigna por sí sola significado de
+aceptación o rechazo a cada código.
 
 ## CUFE-SHA384 confirmado
 

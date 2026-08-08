@@ -27,3 +27,4 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Transporte cURL DIAN sobre TLS verificado, con timeouts, límite de respuesta y fallos estructurados sin retries implícitos.
 - Parser de `UploadDocumentResponse` y SOAP 1.2 Fault con preservación de mensajes, detalle, HTTP y XML original.
 - Cliente de habilitación `DianTestSetClient` que compone envelope, transporte y parser en una llamada reemplazable.
+- Cliente `DianStatusClient` para `GetStatus` y parser completo de `DianResponse` sin perder errores, Base64, HTTP ni XML original.

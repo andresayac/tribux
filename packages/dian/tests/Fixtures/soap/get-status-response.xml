@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic fixture derived from habilitation WSDL SHA-256 da576f42d725b3c8626bc146c26d6eb4c510d849c160290eb04dae0340f5d7b8. -->
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+  <s:Body>
+    <GetStatusResponse xmlns="http://wcf.dian.colombia">
+      <GetStatusResult xmlns:a="http://schemas.datacontract.org/2004/07/DianResponse"
+                       xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <a:ErrorMessage xmlns:b="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+          <b:string>Original DIAN validation message</b:string>
+          <b:string i:nil="true"/>
+        </a:ErrorMessage>
+        <a:IsValid>false</a:IsValid>
+        <a:StatusCode>90</a:StatusCode>
+        <a:StatusDescription>Validation finished</a:StatusDescription>
+        <a:StatusMessage>Document rejected by a synthetic rule</a:StatusMessage>
+        <a:XmlBase64Bytes>PEFwcGxpY2F0aW9uUmVzcG9uc2UvPg==</a:XmlBase64Bytes>
+        <a:XmlBytes>PEludm9p
+Y2UvPg==</a:XmlBytes>
+        <a:XmlDocumentKey>document-key</a:XmlDocumentKey>
+        <a:XmlFileName>fv0000001230002600000001.xml</a:XmlFileName>
+      </GetStatusResult>
+    </GetStatusResponse>
+  </s:Body>
+</s:Envelope>

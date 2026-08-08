@@ -84,13 +84,16 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   detalle, status HTTP, XML original y errores libxml;
 - cliente de librería `DianTestSetClient` que compone firma SOAP, transporte y
   parser mediante dependencias reemplazables;
+- cliente `DianStatusClient` y parser de `DianResponse` para `GetStatus`, con
+  errores, campos opcionales, Base64 original/decodificado, HTTP y XML crudo;
 
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
 - worker de construcción y envío de factura;
 - mapeo de descuentos/cargos/retenciones y cierre de hallazgos Schematron;
-- parsing de `DianResponse` para estado/envío síncrono y respuestas de las demás operaciones;
+- requests/parsers/clientes para `SendBillSync`, `GetStatusZip`,
+  `GetNumberingRange` y demás operaciones;
 - normalización monetaria de descuentos/cargos/retenciones;
 - object storage y evidencia de auditoría;
 - pruebas en ambiente DIAN de habilitación;
@@ -100,7 +103,7 @@ La API actual es solo para desarrollo local. No debe exponerse públicamente has
 
 ## Próximo corte recomendado
 
-Implementar el transporte HTTP con timeouts explícitos y un mock fiel del WCF,
-normalizar `UploadDocumentResponse`/SOAP Fault sin perder el XML original y
-después ejecutar el primer envío controlado en habilitación. En paralelo,
+Implementar naming y empaquetado ZIP FEV 1.9 con fixtures trazables, conectar el
+worker de factura al pipeline de construcción/firma/envío y preparar un script
+reproducible para el primer envío controlado en habilitación. En paralelo,
 completar descuentos, cargos y retenciones del dominio.

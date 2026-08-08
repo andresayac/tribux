@@ -73,12 +73,12 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 
 ### 1.5 Transporte DIAN
 
-- [x] Cliente SOAP aislado (envelope WS-Security + transporte cURL; parser DIAN pendiente).
+- [x] Cliente SOAP aislado (envelope WS-Security + transporte cURL + parsers iniciales).
 - [x] Timeouts explícitos de conexión y solicitud.
 - [ ] Retries solo para fallos seguros/reintentables.
 - [ ] Circuit breaker opcional, medido antes de introducirlo.
 - [x] Normalización inicial de `SendTestSetAsync` y SOAP Fault sin perder XML original.
-- [ ] Normalización de `DianResponse` para consultas/envío síncrono.
+- [x] Normalización inicial de `DianResponse` para `GetStatus`, sin inferir semántica de estados.
 - [ ] Persistencia de evidencia técnica necesaria.
 
 ### 1.6 E2E
