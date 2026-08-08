@@ -6,7 +6,7 @@
 
 **Branch activa:** `main`
 
-**HEAD al crear este documento:** `8dcb7f3`
+**HEAD al actualizar este documento:** `8273cf1`
 
 **Estado del producto:** pre-alpha; componentes DIAN validados localmente, sin
 evidencia de aceptación real en habilitación.
@@ -60,29 +60,32 @@ La rama estaba limpia y sincronizada con `origin/main` al crear este archivo.
 Los últimos cortes verticales publicados son:
 
 ```text
+8273cf1 refactor(dian): deprecate the flattening submission gateway
+da43d85 feat(api): persist invoice processing attempts
+5a71222 feat(core): guard invoice status transitions
+506b732 docs(architecture): define invoice processing flow
+4b7a190 docs: add detailed continuation plan
 8dcb7f3 feat(dian): query test-set ZIP status
 1081ff5 feat(dian): build FEV 1.9 submission ZIPs
 8e6c357 feat(dian): query and parse document status
 0b050ac feat(dian): add test-set client facade
 0ce788d feat(dian): parse test-set SOAP responses
-1b8f0bc feat(dian): transport SOAP over verified TLS
-e8124f1 feat(dian): build signed SOAP requests
-f039356 feat(dian): sign FEV 1.9 with XAdES-EPES
-365fd0a feat(dian): run XSLT 3.0 Schematron
-4229763 feat(dian): map core invoices to FEV 1.9
 ```
 
 Último quality gate completo observado, con caja FEV 1.9 y Saxon disponibles:
 
 ```text
-Paquetes: 81 tests, 438 assertions
-API:       8 tests, 46 assertions
-Total:     89 tests, 484 assertions
+Paquetes: 106 tests, 498 assertions
+API:       24 tests, 134 assertions
+Total:    130 tests, 632 assertions
 PHPStan:   sin errores
 Pint:      sin errores
 Lint PHP:  sin errores
 OpenAPI:   válido
 ```
+
+La suite de la API se ejecutó además contra PostgreSQL 18 real, y las
+migraciones se verificaron hacia arriba y hacia abajo en PostgreSQL y SQLite.
 
 Los números son una fotografía, no un objetivo fijo. Deben aumentar o cambiar al
 añadir funcionalidad; lo importante es que `make check` permanezca verde.
@@ -162,7 +165,12 @@ Componentes disponibles pero aún no orquestados:
   -> Fev19ZipPackageBuilder
   -> DianTestSetClient
   -> DianStatusZipClient
-  -> persistencia de estado/evidencia
+
+Ya disponible y probado, sin consumidor todavía:
+  InvoiceProcessingRepository
+  -> claimForBuilding / claimForSubmission / claimForPolling
+  -> advance / recordRemoteExchange / recordEvidence
+  -> succeed / fail / requeue
 ```
 
 El próximo milestone no consiste en crear otro algoritmo aislado. Consiste en
@@ -225,42 +233,39 @@ del envío once usa `00000011` y no `0000000B`. `Fev19FileSequence` acepta el to
 exacto y deliberadamente no lo incrementa. No añadir un autoincremento hasta
 resolver la regla o hacerla una política explícita y trazable.
 
-### 3.4 El puerto `DianGateway` existente no debe conectarse sin rediseño
+### 3.4 El puerto `DianGateway` quedó deprecado — resuelto por ADR 0016
 
-`packages/dian/src/Contracts/DianGateway.php` recibe `SubmissionRequest` y
-devuelve `SubmissionResult`. Ese resultado contiene un booleano `accepted`, una
-referencia y mensajes simplificados. El contrato es anterior a los parsers SOAP
-actuales y no conserva toda la evidencia requerida.
+`DianGateway`, `SubmissionRequest` y `SubmissionResult` están marcados
+`@deprecated` y no deben conectarse. Los puertos de envío y consulta viven en la
+capa de aplicación y devuelven los DTO completos de `packages/dian`. Se eliminan
+cuando esos puertos aterricen en P0.8.
 
-Antes del worker se debe decidir mediante ADR si:
+Sigue vigente la regla: no aplanar `SendTestSetAsyncResponse`,
+`GetStatusZipResponse` ni `DianResponse` a un booleano.
 
-- se reemplaza/depreca ese puerto;
-- se crean puertos específicos de aplicación para envío y consulta;
-- o se amplía el modelo sin perder HTTP, XML crudo, Fault, códigos y mensajes.
+### 3.5 La persistencia de intentos existe; el almacenamiento de bytes no
 
-No aplanar `SendTestSetAsyncResponse`, `GetStatusZipResponse` o `DianResponse` a
-un booleano prematuramente.
+Implementado en P0.2 (`da43d85`):
 
-### 3.5 No existe persistencia de evidencia ni de intentos
+- `invoice_processing_attempts` con numeración, ambiente, etapa, resultado,
+  operación, `ZipKey`, status HTTP, error estructurado y proyección de mensajes
+  DIAN;
+- `invoice_status_history` append-only con origen y referencia al intento;
+- `invoice_evidence` con referencia de almacenamiento, SHA-256, tamaño y media
+  type;
+- un único intento abierto por factura mediante índice único parcial;
+- tomas de posesión separadas por etapa: `claimForBuilding`,
+  `claimForSubmission`, `claimForPolling`.
 
-La tabla `invoices` solo conserva payload, estado, número y CUFE. Faltan:
+Pendiente todavía:
 
-- intentos de procesamiento;
-- historial de transiciones;
-- hashes y referencias de XML unsigned/signed;
-- ZIP enviado;
-- request/response SOAP cuando la política lo permita;
-- HTTP status;
-- `ZipKey`;
-- SOAP Fault estructurado;
-- cada código/mensaje DIAN;
-- resultados XSD/Schematron;
-- error local normalizado y contexto de etapa;
-- timestamps de cada etapa.
+- adaptador de `EvidenceStore`: hoy sólo se persisten metadatos, nadie escribe
+  los bytes;
+- decisión de object storage concreto y política de retención (Q-005);
+- proyección del estado DIAN hacia la API.
 
 El XML y ZIP no deben vivir únicamente en el filesystem efímero del contenedor.
-Se necesita un puerto de evidencia/object storage y una decisión documentada
-sobre el primer adaptador. No guardar secretos dentro de la evidencia.
+No guardar secretos dentro de la evidencia.
 
 ### 3.6 No hay política segura de retry/polling
 
@@ -316,109 +321,38 @@ un único commit.
 
 ## 5. Plan prioritario por cortes verticales
 
-### P0.1 — ADR de orquestación, evidencia y estados
+### P0.1 — ADR de orquestación, evidencia y estados — **HECHO** (`506b732`)
 
-Crear un ADR antes de fijar contratos difíciles de revertir. Debe decidir:
+`docs/architecture/decisions/0016-invoice-processing-orchestration.md` fija la
+frontera librería/caso de uso/job/adaptador, la deprecación de `DianGateway`,
+la máquina de estados con `awaiting_reconciliation`, el control de un solo
+intento abierto, el puerto de evidencia, el reparto PostgreSQL/object storage,
+la política de polling sin reenvío y la taxonomía local de errores.
 
-- frontera entre caso de uso, job Laravel y adaptador DIAN;
-- reemplazo o evolución de `DianGateway`/`SubmissionResult`;
-- modelo de intento de procesamiento;
-- transiciones internas válidas y control de concurrencia;
-- puerto para evidencia binaria y metadatos;
-- qué se almacena en PostgreSQL y qué en object storage;
-- separación entre estado interno y estado reportado por DIAN;
-- política inicial de polling sin reenviar documentos;
-- tratamiento de errores locales, transporte, SOAP Fault y validación DIAN.
+Leerlo antes de cualquier corte de worker.
 
-Modelo mínimo sugerido para discutir, no para copiar sin ADR:
+### P0.2 — Persistencia de intentos, estados y evidencia — **HECHO** (`5a71222`, `da43d85`)
 
-```text
-invoice_processing_attempts
-  id
-  invoice_id
-  attempt_number
-  environment
-  stage/status interno
-  operation
-  zip_key nullable
-  last_http_status nullable
-  local_error_category/code/message nullable
-  started_at / finished_at
+Implementado:
 
-invoice_status_history
-  invoice_id
-  from_status / to_status
-  source (worker, dian, operator)
-  attempt_id nullable
-  occurred_at
+- `packages/core/src/Invoice/InvoiceStatusTransition.php`: tabla de
+  transiciones legales, estados terminales y guarda contra saltos de etapa;
+- migración `2026_08_08_000001_create_invoice_processing_tables`, reversible y
+  verificada en PostgreSQL 18 y SQLite;
+- puerto `App\Application\Invoices\Processing\Contracts\InvoiceProcessingRepository`
+  y adaptador Eloquent con lock transaccional;
+- índice único parcial `invoice_processing_attempts_active_unique` como garantía
+  real de un solo intento abierto por factura;
+- historial append-only iniciado ya en la creación de la factura (`source: api`);
+- metadatos de evidencia con SHA-256, tamaño, media type y referencia;
+- `recordRemoteExchange` que nunca borra un `ZipKey` conocido;
+- cierre de intento sin cambio de estado para consultas no concluyentes.
 
-invoice_evidence
-  invoice_id / attempt_id
-  kind
-  storage_reference
-  sha256
-  bytes
-  media_type
-  created_at
-```
+Queda fuera de este corte, a propósito:
 
-Tipos iniciales de evidencia a considerar:
-
-```text
-unsigned_xml
-xsd_unsigned_result
-schematron_result
-signed_xml
-xsd_signed_result
-submission_zip
-send_test_set_response_xml
-get_status_zip_response_xml
-soap_fault_detail
-```
-
-Definition of Done:
-
-- ADR aceptado;
-- contratos no pierden errores ni respuesta original;
-- no se serializan credenciales;
-- tests de transiciones y concurrencia definidos;
-- documentación de qué evidencia contiene PII.
-
-Commit sugerido:
-
-```text
-docs(architecture): define invoice processing flow
-```
-
-### P0.2 — Persistencia de intentos, estados y referencias de evidencia
-
-Implementar primero persistencia sin llamar a DIAN:
-
-- migraciones nuevas; no reescribir una migración publicada silenciosamente;
-- repositorio de procesamiento con lock transaccional;
-- transición `queued -> building` atómica;
-- impedir que dos workers procesen simultáneamente la misma factura;
-- persistir historial append-only;
-- persistir referencias/hash/tamaño de evidencia;
-- conservar error estructurado por etapa;
-- tests SQLite rápidos y, cuando corresponda, integración PostgreSQL.
-
-No borrar intentos anteriores al reintentar. No sobrescribir XML firmado como si
-fuera el mismo artefacto.
-
-Definition of Done:
-
-- migraciones reversibles;
-- concurrencia/idempotencia probadas;
-- `GET status` sigue funcionando;
-- API no expone detalles sensibles;
-- errores Problem Details siguen siendo compatibles.
-
-Commit sugerido:
-
-```text
-feat(api): persist invoice processing attempts
-```
+- el adaptador que escribe los bytes (`EvidenceStore`, ver P0.3);
+- cualquier job que use el repositorio (ver P0.9);
+- exponer intentos o evidencia por HTTP.
 
 ### P0.3 — Configuración del emisor y proveedores de secretos
 
@@ -1009,23 +943,25 @@ Al finalizar cada corte:
 
 Empezar exactamente así:
 
-1. verificar que `HEAD` incluye `8dcb7f3` o commits posteriores;
+1. verificar que `HEAD` incluye `8273cf1` o commits posteriores;
 2. ejecutar el quality gate completo con artefactos oficiales;
-3. crear ADR de orquestación/evidencia/estados (P0.1);
-4. implementar persistencia de intentos y transiciones (P0.2);
-5. introducir perfiles de emisor y proveedores de secretos con fakes (P0.3);
-6. completar el contrato mínimo necesario para construir UBL (P0.4);
-7. abordar numeración/secuencias (P0.5);
-8. conectar pipeline local sin red (P0.6);
-9. firmar/empaquetar (P0.7);
-10. integrar envío/consulta con fakes (P0.8);
-11. habilitar job Laravel (P0.9);
-12. crear comando controlado de habilitación (P0.10);
-13. coordinar credenciales humanas y primera evidencia real (P0.11).
+3. leer ADR 0016 antes de tocar el flujo de procesamiento;
+4. introducir perfiles de emisor y proveedores de secretos con fakes, más el
+   adaptador de `EvidenceStore` (P0.3);
+5. completar el contrato mínimo necesario para construir UBL (P0.4);
+6. abordar numeración/secuencias (P0.5);
+7. conectar pipeline local sin red (P0.6);
+8. firmar/empaquetar (P0.7);
+9. integrar envío/consulta con fakes (P0.8);
+10. habilitar job Laravel (P0.9);
+11. crear comando controlado de habilitación (P0.10);
+12. coordinar credenciales humanas y primera evidencia real (P0.11).
 
 No comenzar la siguiente sesión implementando directamente un POST a DIAN desde
-el controller. El siguiente trabajo correcto es el ADR y la persistencia de
-intentos/evidencia que harán seguro y auditable el worker.
+el controller ni desde un job. Con la persistencia de intentos ya disponible, el
+siguiente trabajo correcto es resolver de dónde salen la configuración del
+emisor, los secretos y los bytes de evidencia; sin eso el pipeline de P0.6 no
+puede construir un `InvoiceGenerationContext` real.
 
 ---
 
