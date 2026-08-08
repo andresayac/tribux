@@ -7,6 +7,11 @@ namespace Tribux\Dian\Submission;
 /**
  * Normalized DIAN result. The raw response should be stored separately through
  * the audit/evidence layer when policy requires it.
+ *
+ * @deprecated Flattening a DIAN answer to a boolean discards the codes,
+ * messages and raw XML that reconciliation depends on. Use
+ * SendTestSetAsyncResponse, GetStatusResponse or GetStatusZipResponse. See
+ * ADR 0016.
  */
 final readonly class SubmissionResult
 {

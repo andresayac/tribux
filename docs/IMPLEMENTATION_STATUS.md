@@ -26,7 +26,7 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 |---|---|
 | Contrato HTTP | `openapi/openapi.yaml` |
 | Dominio PHP puro | `packages/core/src` |
-| Puerto de transporte DIAN | `packages/dian/src/Contracts/DianGateway.php` |
+| Clientes DIAN de librería | `packages/dian/src/Soap` |
 | CUFE FEV 1.9 | `packages/dian/src/Cufe` |
 | Modelo y UBL de factura FEV 1.9 | `packages/dian/src/Documents/Fev19/Invoice` |
 | Código de software y URL QR DIAN | `packages/dian/src/Software` y `packages/dian/src/Qr` |

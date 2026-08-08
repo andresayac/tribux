@@ -115,7 +115,8 @@ No empezar por UI. Completar, en orden:
 8. calcular CUFE con fixtures oficiales/validados;
 9. firmar conforme al anexo vigente;
 10. transmitir al ambiente de habilitación;
-11. mapear respuesta DIAN a `SubmissionResult`;
+11. conservar la respuesta DIAN completa como evidencia y proyectarla a estado
+    interno sin aplanarla;
 12. automatizar un flujo end-to-end repetible.
 
 ## Qué NO hacer todavía

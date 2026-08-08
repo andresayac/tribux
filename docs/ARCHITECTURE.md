@@ -48,17 +48,22 @@ Coordina transacciones y puertos. No implementa reglas XML en controllers.
 ## Puertos clave
 
 ```text
-DianGateway
-DocumentRepository
+InvoiceRepository
+InvoiceProcessingRepository
+EvidenceStore
 IdempotencyStore
-ObjectStorage
 SigningKeyProvider
 Clock
+IdGenerator
 EventBus
 AuditLog
 ```
 
 No todos deben existir el primer día. Introducir un puerto cuando exista una frontera real o al menos dos implementaciones previsibles con valor.
+
+El puerto histórico `DianGateway` está deprecado: aplanaba la respuesta DIAN a
+un booleano. Los puertos de envío y consulta viven en la capa de aplicación y
+devuelven los DTO completos de `packages/dian`. Ver ADR 0016.
 
 ## Flujo de emisión
 
@@ -79,7 +84,7 @@ worker
   -> validate locally
   -> sign
   -> validate signed document
-  -> submit through DianGateway
+  -> submit through the application submission port
   -> normalize DIAN response
   -> update immutable audit trail/state
   -> emit domain/integration event
@@ -104,7 +109,8 @@ Reutilizar una clave con payload distinto debe producir conflicto, no una segund
 
 ## Estados
 
-Propuesta inicial; debe refinarse mediante ADR antes de producción:
+Fijados por ADR 0016 e implementados en
+`packages/core/src/Invoice/InvoiceStatusTransition.php`:
 
 ```text
 draft
@@ -114,10 +120,16 @@ signed
 submitted
 accepted
 rejected
+awaiting_reconciliation
 retryable_failure
 permanent_failure
-cancelled_by_business_process (si aplica conceptualmente, no como borrado DIAN)
 ```
+
+`awaiting_reconciliation` significa que el resultado del envío es desconocido:
+se resuelve consultando a DIAN, nunca reenviando.
+
+Un estado de cancelación por proceso de negocio sigue sin decidirse y necesita
+su propio ADR; no debe confundirse con una anulación ante DIAN.
 
 Separar **estado interno** de **estado reportado por DIAN**.
 

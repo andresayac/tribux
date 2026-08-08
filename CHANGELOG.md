@@ -38,3 +38,7 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 ### Changed
 
 - El estado interno `awaiting_reconciliation` se añade al enum público de estado de factura para representar un envío de resultado desconocido que nunca debe reenviarse automáticamente.
+
+### Deprecated
+
+- `Tribux\Dian\Contracts\DianGateway`, `SubmissionRequest` y `SubmissionResult`: aplanan la respuesta DIAN y pierden XML crudo, HTTP, Fault y campos opcionales. Se eliminarán cuando aterricen los puertos de envío y consulta de la capa de aplicación.
