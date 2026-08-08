@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "tool": "SaxonJ-HE",
+  "version": "12.10",
+  "verified_on": "2026-08-08",
+  "default_target": "var/tools/saxon/12.10",
+  "license": "MPL-2.0; preserve the notices directory when distributing the binary",
+  "artifacts": [
+    {
+      "id": "saxon-he-distribution",
+      "file": "SaxonHE12-10J.zip",
+      "url": "https://downloads.saxonica.com/SaxonJ/HE/12/SaxonHE12-10J.zip",
+      "bytes": 7175685,
+      "sha256": "1c7db9f726df835349c64edd631de0310eca31291100230064eba153f607b0be",
+      "purpose": "Pinned XSLT 3.0 runtime for the compiled DIAN Schematron."
+    }
+  ],
+  "extracted_hashes": {
+    "saxon-he-12.10.jar": "89bcd071666c3268ee8c5e91e9c9812ad52b3e49d38a3a971720fdb428bfeea9",
+    "lib/xmlresolver-5.3.3.jar": "1fe4d5b92f708dcdb82dbce12919e0171e6b5ca62c6dca6220483625098feb5f",
+    "lib/xmlresolver-5.3.3-data.jar": "b0c487ad2f3e558be8d829c916d2458d10aca6a5bafa7a4d0524b70845e48a5c"
+  }
+}

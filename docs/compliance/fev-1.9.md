@@ -12,7 +12,7 @@
 | FEV19-QR-001 | Anexo FEV 1.9, SHA `1b4022…` | 11.7.1 | URL de consulta QR distinta para habilitación y producción | `DianQrUrl` | CUFE sintético del fixture mínimo | `DianQrUrlTest` | `locally_validated` |
 | FEV19-UBL-001 | Anexo FEV 1.9 + Caja FE V19, SHA `2d6002…` | modelo Invoice + `XSD/maindoc` | Serializar modelo versionado a UBL 2.1 con `sts:DianExtensions`, sin inventar firma | `Documents/Fev19/Invoice` | `minimal-priced-line.json` | `UnsignedInvoiceXmlGeneratorTest` | `locally_validated` |
 | FEV19-XSD-001 | Caja FE V19, SHA `2d6002…` | `XSD/maindoc` | Validar estructura contra el XSD del tipo documental | `Fev19ArtifactSet`, `DianXsdValidator` | fixtures de motor + ejemplo oficial local | `DianXsdValidatorTest` | `locally_validated` |
-| FEV19-SCH-001 | Caja FE V19, SHA `2d6002…` | `Schemes/UBL21`, XSL compilado | Ejecutar reglas Schematron con XSLT 3.0 | pendiente | pendiente | pendiente | `research` |
+| FEV19-SCH-001 | Caja FE V19, SHA `2d6002…` | `Schemes/UBL21`, XSL compilado | Ejecutar reglas Schematron con XSLT 3.0 y conservar severidad/código/texto | `SaxonSchematronValidator` | ejemplo oficial local | `SaxonSchematronValidatorTest` | `locally_validated` |
 | FEV19-SOAP-001 | WSDL habilitación/producción | `IWcfDianCustomerServices` | URLs observadas y acciones de operaciones iniciales | `DianEndpoint`, `DianSoapOperation` | hashes WSDL en manifiesto | `DianEndpointTest` | `specified` |
 | FEV19-SOAP-002 | Anexo FEV 1.9 + WSDL | capítulo 7 | SOAP 1.2, WS-Addressing, TLS/WS-Security/X.509 | pendiente | WSDL verificado | pendiente | `research` |
 | FEV19-FILE-001 | Anexo FEV 1.9, SHA `1b4022…` | 6.5.7, pp. 303-304 | Nombre XML por tipo/NIT/PT/año/consecutivo | pendiente | pendiente | pendiente | `research` |
@@ -23,3 +23,5 @@
 
 `locally_validated` describe únicamente pruebas locales contra el fixture
 publicado. No implica aceptación en habilitación ni certificación de la DIAN.
+La contradicción `ProfileID` observada al ejecutar el XSL oficial está registrada
+como Q-009 y evita afirmar que el UBL generado pasa Schematron.

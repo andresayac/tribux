@@ -17,3 +17,4 @@ coverage/
 *.cer
 storage/private/
 /var/dian/
+/var/tools/

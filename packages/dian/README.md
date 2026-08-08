@@ -68,3 +68,9 @@ Requiere un `InvoiceGenerationContext` enriquecido por la aplicación: resoluci�
 software/PIN, clave técnica, datos DIAN de las partes, unidades y mapeos de
 impuestos. Los secretos permanecen privados en memoria y no se infieren desde el
 payload genérico.
+
+Schematron requiere un runtime XSLT 3.0 opcional. `SaxonSchematronValidator`
+soporta SaxonJ-HE 12.10 y devuelve severidad, código DIAN, mensaje normalizado y
+texto original. El runtime se obtiene con `composer tools:fetch-saxon` y
+`composer tools:extract-saxon`; luego puede ejecutarse
+`composer dian:validate-schematron -- documento.xml`.

@@ -28,7 +28,10 @@
     "dian:extract-fev19": "@php tools/dian/extract-toolbox.php",
     "dian:fetch-fev19": "@php tools/dian/fetch-artifacts.php resources/dian/fev/1.9/manifest.json",
     "dian:validate-xml": "@php tools/dian/validate-xml.php",
+    "dian:validate-schematron": "@php tools/dian/validate-schematron.php",
     "lint": "parallel-lint packages --exclude vendor",
+    "tools:extract-saxon": "@php tools/saxon/extract.php",
+    "tools:fetch-saxon": "@php tools/dian/fetch-artifacts.php resources/tools/saxon/12.10/manifest.json",
     "test": "phpunit"
   }
 }

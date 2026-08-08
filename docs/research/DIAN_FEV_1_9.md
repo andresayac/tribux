@@ -42,8 +42,11 @@ estructural local con DOM/libxml. El ejemplo oficial
 `ejemplificacionIBUA-3.xml` pasó esa validación en la fecha de corte. El
 Schematron `DIAN-UBL21-model.sch` declara `queryBinding="xslt3"` y su XSL
 compilado usa XSLT 3.0: la extensión XSL de PHP usa libxslt 1.x y no es un motor
-compatible. Schematron permanece pendiente hasta integrar y fijar un runtime
-XSLT 3.0 reproducible.
+compatible. Tribux fijó SaxonJ-HE 12.10 como runtime XSLT 3.0 reproducible y ya
+conserva hallazgos estructurados. La ejecución local del ejemplo oficial reveló
+que el XSL v2026 exige `ProfileID = 'DIAN 2.1'`, mientras FAD03 del anexo exige
+`DIAN 2.1: Factura Electrónica de Venta`; la contradicción Q-009 permanece
+abierta y bloquea declarar un resultado Schematron limpio.
 
 ## Primer UBL de factura
 

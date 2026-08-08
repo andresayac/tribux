@@ -21,3 +21,4 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Calculador básico de líneas, impuestos porcentuales y totales de factura.
 - Totales tributarios UBL con múltiples subtotales y tarifas.
 - Mapper del perfil básico de factura core al documento FEV 1.9 enriquecido.
+- Validador Schematron XSLT 3.0 con SaxonJ-HE reproducible y mensajes DIAN estructurados.

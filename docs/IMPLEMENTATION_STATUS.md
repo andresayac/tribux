@@ -30,6 +30,7 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 | CUFE FEV 1.9 | `packages/dian/src/Cufe` |
 | Modelo y UBL de factura FEV 1.9 | `packages/dian/src/Documents/Fev19/Invoice` |
 | Código de software y URL QR DIAN | `packages/dian/src/Software` y `packages/dian/src/Qr` |
+| Schematron XSLT 3.0 | `packages/dian/src/Validation/Schematron` |
 | Perfil de endpoints/operaciones | `packages/dian/src/Soap` |
 | Metadatos de política de firma | `packages/dian/src/Signing` |
 | Descubrimiento/validación XSD | `packages/dian/src/Artifacts` y `packages/dian/src/Validation` |
@@ -71,12 +72,14 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   seguridad del software y URL QR por ambiente;
 - fixture sintético trazable y prueba local satisfactoria contra el XSD
   `UBL-Invoice-2.1.xsd` de la caja oficial FEV 1.9.
+- ejecución Schematron XSLT 3.0 con SaxonJ-HE 12.10 verificable, timeout y
+  hallazgos DIAN estructurados;
 
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
 - worker de construcción y envío de factura;
-- mapeo de descuentos/cargos/retenciones y ejecución Schematron/XSLT 3.0;
+- mapeo de descuentos/cargos/retenciones y cierre de hallazgos Schematron;
 - firma XAdES-EPES; el XML generado actualmente es deliberadamente unsigned;
 - normalización monetaria previa al CUFE, XAdES y cliente SOAP seguro;
 - object storage y evidencia de auditoría;
