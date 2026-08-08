@@ -31,8 +31,8 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 | Modelo y UBL de factura FEV 1.9 | `packages/dian/src/Documents/Fev19/Invoice` |
 | Código de software y URL QR DIAN | `packages/dian/src/Software` y `packages/dian/src/Qr` |
 | Schematron XSLT 3.0 | `packages/dian/src/Validation/Schematron` |
-| Perfil de endpoints/operaciones | `packages/dian/src/Soap` |
-| Metadatos de política de firma | `packages/dian/src/Signing` |
+| Perfil de endpoints, mensajes y WS-Security | `packages/dian/src/Soap` |
+| Credenciales y firma XAdES-EPES | `packages/dian/src/Signing` |
 | Descubrimiento/validación XSD | `packages/dian/src/Artifacts` y `packages/dian/src/Validation` |
 | Artefactos oficiales verificables | `resources/dian/fev/1.9/manifest.json` |
 | Matriz FEV 1.9 | `docs/compliance/fev-1.9.md` |
@@ -74,14 +74,18 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   `UBL-Invoice-2.1.xsd` de la caja oficial FEV 1.9.
 - ejecución Schematron XSLT 3.0 con SaxonJ-HE 12.10 verificable, timeout y
   hallazgos DIAN estructurados;
+- firma XAdES-EPES local con credenciales PEM/PKCS#12 encapsuladas, cadena X.509,
+  política v2 y validación criptográfica/XSD con certificados efímeros;
+- construcción SOAP 1.2 de `SendTestSetAsync` con WS-Addressing, Timestamp,
+  BinarySecurityToken y firma RSA-SHA256 del header `To`;
 
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
 - worker de construcción y envío de factura;
 - mapeo de descuentos/cargos/retenciones y cierre de hallazgos Schematron;
-- firma XAdES-EPES; el XML generado actualmente es deliberadamente unsigned;
-- normalización monetaria previa al CUFE, XAdES y cliente SOAP seguro;
+- transporte HTTP del mensaje SOAP, timeouts y parsing de respuestas/faults;
+- normalización monetaria de descuentos/cargos/retenciones;
 - object storage y evidencia de auditoría;
 - pruebas en ambiente DIAN de habilitación;
 - documentación web local y proceso de release.
@@ -90,6 +94,7 @@ La API actual es solo para desarrollo local. No debe exponerse públicamente has
 
 ## Próximo corte recomendado
 
-Cerrar el perfil de firma XAdES-EPES y construir el primer modelo de documento
-DIAN versionado. En paralelo, completar el dominio genérico que alimentará ese
-modelo (numeración, fechas/zonas, moneda, descuentos/cargos y totales).
+Implementar el transporte HTTP con timeouts explícitos y un mock fiel del WCF,
+normalizar `UploadDocumentResponse`/SOAP Fault sin perder el XML original y
+después ejecutar el primer envío controlado en habilitación. En paralelo,
+completar descuentos, cargos y retenciones del dominio.

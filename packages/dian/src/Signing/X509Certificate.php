@@ -71,6 +71,11 @@ final readonly class X509Certificate
         return $this->resource;
     }
 
+    public function sha1ThumbprintBase64(): string
+    {
+        return base64_encode(hash('sha1', $this->der, true));
+    }
+
     /** @param array<mixed, mixed> $issuer */
     private static function issuerName(array $issuer): string
     {

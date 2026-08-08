@@ -88,6 +88,21 @@ El anexo, sección 7, exige además TLS 1.2, WS-Security 1.0 y el perfil X.509
 Certificate Token 1.1. No se implementará el cliente con SOAP nativo de PHP
 hasta probar que permite controlar exactamente estas cabeceras y firmas.
 
+La policy del WSDL vigente exige `IncludeTimestamp`, layout `Strict`, token X.509
+V3 incluido siempre para el receptor, referencia `ThumbprintSHA1` y firma de la
+cabecera WS-Addressing `To`. La guía oficial configura RSA-SHA256, C14N exclusivo,
+digest SHA-256, certificado único, la misma cabecera `To` y un Timestamp de
+60.000 ms. Su captura selecciona `Binary Security Token` como identificador, en
+contradicción con `RequireThumbprintReference` del WSDL; la diferencia queda como
+Q-010 hasta observar una respuesta del ambiente de habilitación.
+
+`WsSecuritySoapEnvelopeBuilder` construye y verifica localmente ambos perfiles de
+referencia. El default sigue el WSDL (`ThumbprintSHA1`); el modo de referencia
+directa al `BinarySecurityToken` exige selección explícita. La prueba vuelve a
+cargar el XML, verifica la firma RSA y el digest de `To`, además del body y
+Content-Type de `SendTestSetAsync`. Todavía no existe transporte HTTP ni se afirma
+aceptación remota.
+
 ## Operaciones del primer corte
 
 El namespace del contrato es `http://wcf.dian.colombia` y las acciones siguen:

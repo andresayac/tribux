@@ -79,6 +79,14 @@ criptográfico genera certificado y clave efímeros en cada ejecución; no hay
 material privado versionado. La firma pasa localmente el XSD oficial, pero falta
 probarla con un certificado real de habilitación y obtener respuesta DIAN.
 
+`Soap/WsSecuritySoapEnvelopeBuilder` prepara un mensaje SOAP 1.2 firmado para el
+WCF de DIAN sin realizar I/O. `Requests/SendTestSetAsyncRequest` encapsula el ZIP
+en Base64 y `DianSoapMessage` expone el Content-Type con su action. El default
+usa la referencia `ThumbprintSHA1` exigida por el WSDL vigente; la referencia
+directa a `BinarySecurityToken` mostrada por la guía histórica solo se activa de
+forma explícita. Ninguno de los dos modos se considera aceptado hasta probarlo en
+habilitación.
+
 `Documents/Fev19/Invoice/UnsignedInvoiceXmlGenerator` produce XML determinista
 sin firma con `sts:DianExtensions`. Su contrato exige que numeración, software, CUFE,
 terceros, impuestos y totales ya estén normalizados; no infiere reglas fiscales.

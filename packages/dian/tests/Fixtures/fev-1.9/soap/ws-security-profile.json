@@ -1,0 +1,17 @@
+{
+  "source": {
+    "verified_on": "2026-08-08",
+    "habilitation_wsdl_sha256": "da576f42d725b3c8626bc146c26d6eb4c510d849c160290eb04dae0340f5d7b8",
+    "production_wsdl_sha256": "f92a7e6ec77b21ad6a91cf38ceb54fed22ec754140b417506dfb53d6da0a53f4",
+    "web_services_guide_sha256": "0f78626fbba95700e178178369b187e39660878d5313859324e0f83a09471df7"
+  },
+  "soap_namespace": "http://www.w3.org/2003/05/soap-envelope",
+  "addressing_namespace": "http://www.w3.org/2005/08/addressing",
+  "signature_method": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+  "canonicalization_method": "http://www.w3.org/2001/10/xml-exc-c14n#",
+  "digest_method": "http://www.w3.org/2001/04/xmlenc#sha256",
+  "signed_header": "To",
+  "timestamp_ttl_milliseconds": 60000,
+  "wsdl_certificate_reference": "ThumbprintSHA1",
+  "guide_certificate_reference": "BinarySecurityToken"
+}
