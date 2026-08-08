@@ -229,16 +229,7 @@ components:
         issuer_id:
           type: string
         status:
-          type: string
-          enum:
-            - queued
-            - building
-            - signed
-            - submitted
-            - accepted
-            - rejected
-            - retryable_failure
-            - permanent_failure
+          $ref: '#/components/schemas/InvoiceStatus'
         cufe:
           type: [string, 'null']
         number:
@@ -246,6 +237,22 @@ components:
         created_at:
           type: string
           format: date-time
+    InvoiceStatus:
+      type: string
+      description: >-
+        Internal Tribux processing status. It never mirrors a DIAN status:
+        `awaiting_reconciliation` means the submission outcome is unknown and
+        must be resolved by querying DIAN, never by resending.
+      enum:
+        - queued
+        - building
+        - signed
+        - submitted
+        - accepted
+        - rejected
+        - awaiting_reconciliation
+        - retryable_failure
+        - permanent_failure
     InvoiceStatusResource:
       type: object
       required: [id, status, cufe]
@@ -254,16 +261,7 @@ components:
           type: string
           format: uuid
         status:
-          type: string
-          enum:
-            - queued
-            - building
-            - signed
-            - submitted
-            - accepted
-            - rejected
-            - retryable_failure
-            - permanent_failure
+          $ref: '#/components/schemas/InvoiceStatus'
         cufe:
           type: [string, 'null']
     Problem:

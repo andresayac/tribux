@@ -30,3 +30,9 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Cliente `DianStatusClient` para `GetStatus` y parser completo de `DianResponse` sin perder errores, Base64, HTTP ni XML original.
 - Naming XML/ZIP FEV 1.9 y empaquetador reproducible con cardinalidad síncrona/asíncrona y secuencia explícita por Q-008.
 - Cliente `DianStatusZipClient` para consultar `ZipKey` y conservar íntegro `ArrayOfDianResponse`.
+- ADR 0016 con la frontera de orquestación, el modelo de evidencia y la máquina de estados del procesamiento de factura.
+- Máquina de estados interna explícita en el core, con transiciones legales, estados terminales y guardas contra saltos de etapa.
+
+### Changed
+
+- El estado interno `awaiting_reconciliation` se añade al enum público de estado de factura para representar un envío de resultado desconocido que nunca debe reenviarse automáticamente.
