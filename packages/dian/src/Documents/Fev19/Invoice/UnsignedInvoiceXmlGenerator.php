@@ -224,14 +224,17 @@ final class UnsignedInvoiceXmlGenerator
     {
         $total = $this->append($parent, self::NS_CAC, 'cac:TaxTotal');
         $this->appendMoney($total, 'cbc:TaxAmount', $value->taxAmount, $currency);
-        $subtotal = $this->append($total, self::NS_CAC, 'cac:TaxSubtotal');
-        $this->appendMoney($subtotal, 'cbc:TaxableAmount', $value->taxableAmount, $currency);
-        $this->appendMoney($subtotal, 'cbc:TaxAmount', $value->taxAmount, $currency);
-        $category = $this->append($subtotal, self::NS_CAC, 'cac:TaxCategory');
-        $this->append($category, self::NS_CBC, 'cbc:Percent', $value->percent);
-        $scheme = $this->append($category, self::NS_CAC, 'cac:TaxScheme');
-        $this->append($scheme, self::NS_CBC, 'cbc:ID', $value->taxSchemeId);
-        $this->append($scheme, self::NS_CBC, 'cbc:Name', $value->taxSchemeName);
+
+        foreach ($value->subtotals as $subtotalValue) {
+            $subtotal = $this->append($total, self::NS_CAC, 'cac:TaxSubtotal');
+            $this->appendMoney($subtotal, 'cbc:TaxableAmount', $subtotalValue->taxableAmount, $currency);
+            $this->appendMoney($subtotal, 'cbc:TaxAmount', $subtotalValue->taxAmount, $currency);
+            $category = $this->append($subtotal, self::NS_CAC, 'cac:TaxCategory');
+            $this->append($category, self::NS_CBC, 'cbc:Percent', $subtotalValue->percent);
+            $scheme = $this->append($category, self::NS_CAC, 'cac:TaxScheme');
+            $this->append($scheme, self::NS_CBC, 'cbc:ID', $subtotalValue->taxSchemeId);
+            $this->append($scheme, self::NS_CBC, 'cbc:Name', $subtotalValue->taxSchemeName);
+        }
     }
 
     private function appendMonetaryTotal(DOMElement $root, InvoiceMonetaryTotal $value, string $currency): void

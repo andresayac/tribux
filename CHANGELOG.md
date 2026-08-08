@@ -19,3 +19,4 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Código de seguridad de software SHA-384 y URL QR DIAN diferenciada por ambiente.
 - Aritmética decimal exacta en el core con escala y redondeo explícitos.
 - Calculador básico de líneas, impuestos porcentuales y totales de factura.
+- Totales tributarios UBL con múltiples subtotales y tarifas.

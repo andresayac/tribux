@@ -19,6 +19,7 @@ use Tribux\Dian\Documents\Fev19\Invoice\InvoiceLine;
 use Tribux\Dian\Documents\Fev19\Invoice\InvoiceMonetaryTotal;
 use Tribux\Dian\Documents\Fev19\Invoice\InvoiceParty;
 use Tribux\Dian\Documents\Fev19\Invoice\InvoiceTaxTotal;
+use Tribux\Dian\Documents\Fev19\Invoice\InvoiceTaxSubtotal;
 use Tribux\Dian\Documents\Fev19\Invoice\SoftwareProvider;
 use Tribux\Dian\Documents\Fev19\Invoice\UnsignedInvoiceXmlGenerator;
 use Tribux\Dian\Validation\DianXsdValidator;
@@ -212,11 +213,14 @@ final class UnsignedInvoiceXmlGeneratorTest extends TestCase
             self::assertIsArray($tax);
 
             return new InvoiceTaxTotal(
-                taxableAmount: (string) $tax['taxable_amount'],
                 taxAmount: (string) $tax['tax_amount'],
-                percent: (string) $tax['percent'],
-                taxSchemeId: (string) $tax['scheme_id'],
-                taxSchemeName: (string) $tax['scheme_name'],
+                subtotals: [new InvoiceTaxSubtotal(
+                    taxableAmount: (string) $tax['taxable_amount'],
+                    taxAmount: (string) $tax['tax_amount'],
+                    percent: (string) $tax['percent'],
+                    taxSchemeId: (string) $tax['scheme_id'],
+                    taxSchemeName: (string) $tax['scheme_name'],
+                )],
             );
         }, $taxes);
     }
