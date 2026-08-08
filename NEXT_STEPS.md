@@ -6,7 +6,7 @@
 
 **Branch activa:** `main`
 
-**HEAD al actualizar este documento:** `d1e5c0a`
+**HEAD al actualizar este documento:** `5cab5ae`
 
 **Estado del producto:** pre-alpha; componentes DIAN validados localmente, sin
 evidencia de aceptación real en habilitación.
@@ -60,29 +60,33 @@ La rama estaba limpia y sincronizada con `origin/main` al crear este archivo.
 Los últimos cortes verticales publicados son:
 
 ```text
+5cab5ae feat(dian): query authorized numbering ranges
+bb9d5ec feat(api): reserve invoice numbers atomically
+03605bd feat(dian): encode FEV 1.9 file sequences explicitly
+49f396b feat(core): model numbering authorizations
+c362d3c docs: record the issuance contract in the handoff plan
 d1e5c0a feat(api): enrich the invoice issuance contract
 34f3998 docs: describe issuer, secret and evidence mounts
 bda637f feat(api): store invoice evidence bytes
 4f33201 feat(api): load signing credentials securely
 dc7b34d feat(api): resolve versioned issuer profiles
-8273cf1 refactor(dian): deprecate the flattening submission gateway
-da43d85 feat(api): persist invoice processing attempts
-5a71222 feat(core): guard invoice status transitions
-506b732 docs(architecture): define invoice processing flow
-4b7a190 docs: add detailed continuation plan
 ```
 
 Último quality gate completo observado, con caja FEV 1.9 y Saxon disponibles:
 
 ```text
-Paquetes: 106 tests, 498 assertions
-API:       65 tests, 300 assertions
-Total:    171 tests, 798 assertions
+Paquetes: 130 tests, 601 assertions
+API:       79 tests, 333 assertions
+Total:    209 tests, 934 assertions
 PHPStan:   sin errores
 Pint:      sin errores
 Lint PHP:  sin errores
 OpenAPI:   válido
 ```
+
+La suite de la API vuelve a ejecutarse contra PostgreSQL 18 real. Esa ejecución
+es la que detectó una columna `uuid` alimentada con una cadena arbitraria que
+SQLite aceptaba sin protestar.
 
 La suite de la API se ejecutó además contra PostgreSQL 18 real, y las
 migraciones se verificaron hacia arriba y hacia abajo en PostgreSQL y SQLite.
@@ -423,34 +427,41 @@ Los datos DIAN del adquirente llegan al mapper FEV 1.9 por
 Los tests se construyen sobre `examples/invoice.minimal.json`, de modo que el
 ejemplo publicado no puede desviarse del contrato.
 
-### P0.5 — Numeración y secuencias atómicas
+### P0.5 — Numeración y secuencias atómicas — **HECHO** (`49f396b`, `03605bd`, `bb9d5ec`, `5cab5ae`)
 
-Implementar un slice independiente:
+Implementado:
 
-- modelo versionado de autorización/resolución;
-- validar prefijo, rango y vigencia contra fuente/configuración;
-- reserva transaccional del siguiente número;
-- reserva anual separada para XML y ZIP;
-- no reutilizar números tras un fallo ambiguo;
-- concurrencia probada con dos reservas simultáneas;
-- política de secuencia FEV explícita mientras Q-008 siga abierta.
+- `Tribux\Core\Numbering\NumberingAuthorization`: rango, prefijo y vigencia por
+  día calendario. La vigencia exige que el llamador pase un instante ya
+  expresado en la zona del emisor, porque tomar un instante arbitrario correría
+  el primer y el último día válido;
+- `IssuerProfile` deriva su autorización al cargar la configuración, así que un
+  rango inservible falla ahí y no a mitad de un envío;
+- reserva por **libro de asientos con índices únicos**, no por contador con
+  lock: el índice es la garantía, así que la corrección no depende de que el
+  motor respete `select ... for update` —SQLite lo ignora— y la suite rápida
+  ejerce el mismo invariante que PostgreSQL. Cada inserción va en un savepoint
+  para que una transacción PostgreSQL sobreviva al perdedor de la carrera;
+- las filas nunca se borran, así que un número sigue consumido tras un fallo
+  ambiguo en lugar de entregarse a un segundo documento;
+- reserva idempotente por factura, y secuencias anuales XML/ZIP idempotentes por
+  dueño, de modo que reejecutar una etapa no renombra un artefacto en silencio;
+- `Fev19SequenceEncoding` con `decimal` y `hexadecimal`, **sin valor por
+  defecto**: el perfil de emisor debe declarar cuál usa mientras Q-008 siga
+  abierta. `Fev19FileSequence` sigue aceptando el token exacto sin inferir
+  ordinal;
+- `DianNumberingRangeClient` y parser de `GetNumberingRange` con
+  `NumberRangeResponseList` completo, lista nula distinta de lista vacía,
+  miembros nulos, Fault, HTTP y XML crudo.
 
-Después implementar `GetNumberingRange` con el WSDL oficial:
+**Hallazgo de seguridad:** el WSDL coloca `TechnicalKey` dentro de cada
+`NumberRangeResponse`, así que una consulta de rangos responde con la clave
+técnica de la resolución en texto plano. El valor queda encapsulado, redactado,
+fuera de JSON y no serializable, y **no existe un tipo de evidencia para esta
+operación**: guardar su XML crudo guardaría un secreto.
 
-- request document/literal;
-- modelos de `NumberRangeResponseList` y elementos;
-- parser que conserve campos opcionales, HTTP, Fault y XML crudo;
-- fixture positivo, nulo, Fault y negativo;
-- cliente de librería reemplazable;
-- no convertir una consulta de rangos en asignación automática sin validación.
-
-Commits sugeridos:
-
-```text
-feat(core): model numbering authorizations
-feat(api): reserve invoice numbers atomically
-feat(dian): query authorized numbering ranges
-```
+La consulta sigue siendo una consulta. Convertir un rango reportado en un número
+emitido sigue pasando por la reserva validada.
 
 ### P0.6 — Pipeline local de construcción y validación
 
@@ -923,28 +934,29 @@ Al finalizar cada corte:
 
 Empezar exactamente así:
 
-1. verificar que `HEAD` incluye `d1e5c0a` o commits posteriores;
+1. verificar que `HEAD` incluye `5cab5ae` o commits posteriores;
 2. ejecutar el quality gate completo con artefactos oficiales;
 3. leer ADR 0016 antes de tocar el flujo de procesamiento;
-4. abordar numeración/secuencias (P0.5);
-5. conectar pipeline local sin red (P0.6);
-6. firmar/empaquetar (P0.7);
-7. integrar envío/consulta con fakes (P0.8);
-8. habilitar job Laravel (P0.9);
-9. crear comando controlado de habilitación (P0.10);
-10. coordinar credenciales humanas y primera evidencia real (P0.11).
+4. conectar el pipeline local sin red (P0.6);
+5. firmar/empaquetar (P0.7);
+6. integrar envío/consulta con fakes (P0.8);
+7. habilitar job Laravel (P0.9);
+8. crear comando controlado de habilitación (P0.10);
+9. coordinar credenciales humanas y primera evidencia real (P0.11).
 
 No comenzar la siguiente sesión implementando directamente un POST a DIAN desde
 el controller ni desde un job.
 
-Intentos, perfiles, secretos, evidencia y contrato de entrada ya existen. La
-única entrada que falta para construir un `InvoiceGenerationContext` real es el
-número reservado, y con él las secuencias anuales de los nombres XML y ZIP. Eso
-es P0.5, y hasta que esté no tiene sentido empezar P0.6.
+**Ya no falta ninguna entrada.** Intentos, perfiles, secretos, evidencia,
+contrato HTTP y numeración existen y están probados. P0.6 es puro ensamblaje:
+un caso de uso independiente de Laravel que una perfil + detalles de emisión +
+número reservado + secretos en un `InvoiceGenerationContext`, ejecute
+`CoreInvoiceMapper`, genere el XML unsigned, lo valide contra XSD y Schematron
+y persista cada artefacto y cada mensaje como evidencia. Sin red.
 
-Recordatorio para P0.5: Q-008 sigue abierta. `Fev19FileSequence` acepta el token
-exacto y no lo incrementa a propósito. No añadir autoincremento sin resolver la
-regla o convertirla en política explícita y trazable.
+Recordatorio para P0.6: Q-009 sigue abierta. Un test no puede marcar como válido
+un documento con FAD03 sólo para desbloquear el pipeline. El resultado
+Schematron se conserva estructurado y el flujo se detiene con error tipado.
 
 ---
 
