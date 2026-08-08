@@ -14,6 +14,11 @@
     "phpstan/phpstan": "^2.1",
     "phpunit/phpunit": "^12.5"
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Tribux\\Dian\\Tests\\": "packages/dian/tests/"
+    }
+  },
   "repositories": [
     { "type": "path", "url": "packages/core", "options": { "symlink": true } },
     { "type": "path", "url": "packages/dian", "options": { "symlink": true } }

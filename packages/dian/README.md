@@ -99,6 +99,28 @@ el XML recibido. Expone `ZipKey` y cada `XmlParamsResponseTrackId`; un SOAP 1.2
 Fault conserva código, subcódigo, razones por idioma y detalle aun con HTTP 500.
 Valores opcionales ausentes permanecen `null` en lugar de inventar defaults.
 
+Para habilitación, `DianTestSetClient` compone las tres etapas sin ocultarlas:
+
+```php
+use DateTimeImmutable;
+use Tribux\Dian\DianEnvironment;
+use Tribux\Dian\Soap\DianEndpoint;
+use Tribux\Dian\Soap\DianTestSetClient;
+use Tribux\Dian\Soap\Requests\SendTestSetAsyncRequest;
+
+$result = (new DianTestSetClient(
+    DianEndpoint::defaultFor(DianEnvironment::Habilitation),
+))->send(
+    new SendTestSetAsyncRequest($zipFileName, $zipContents, $testSetId),
+    $credentials,
+    new DateTimeImmutable('now'),
+);
+```
+
+El cliente no reintenta ni persiste evidencia. El nombre/ZIP deben haberse
+construido según el perfil DIAN y la aplicación debe conservar `rawXml` en su
+almacenamiento seguro.
+
 `Documents/Fev19/Invoice/UnsignedInvoiceXmlGenerator` produce XML determinista
 sin firma con `sts:DianExtensions`. Su contrato exige que numeración, software, CUFE,
 terceros, impuestos y totales ya estén normalizados; no infiere reglas fiscales.

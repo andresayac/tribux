@@ -82,6 +82,8 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   respuesta, cero redirects/retries implícitos y errores estructurados;
 - parser de `UploadDocumentResponse` y SOAP 1.2 Fault que conserva campos DIAN,
   detalle, status HTTP, XML original y errores libxml;
+- cliente de librería `DianTestSetClient` que compone firma SOAP, transporte y
+  parser mediante dependencias reemplazables;
 
 ## No implementado todavía
 
