@@ -1,0 +1,1053 @@
+# Tribux — plan de continuación y relevo técnico
+
+**Última actualización:** 2026-08-08
+
+**Repositorio:** `https://github.com/andresayac/tribux.git`
+
+**Branch activa:** `main`
+
+**HEAD al crear este documento:** `8dcb7f3`
+
+**Estado del producto:** pre-alpha; componentes DIAN validados localmente, sin
+evidencia de aceptación real en habilitación.
+
+Este archivo es un punto de reanudación para humanos y agentes IA. Resume qué
+existe, qué falta y en qué orden conviene continuar. No sustituye las fuentes
+oficiales, `AGENTS.md`, los ADR ni la matriz de compliance. Si hay contradicción,
+prevalecen las instrucciones del repositorio y la fuente oficial versionada.
+
+---
+
+## 1. Lectura obligatoria antes de continuar
+
+Leer en este orden antes de modificar código:
+
+1. `AGENTS.md`;
+2. `docs/AI_AGENT_BRIEF.md`;
+3. `docs/PROJECT_VISION.md`;
+4. `docs/ARCHITECTURE.md`;
+5. `docs/DIAN_RESEARCH_BASELINE.md`;
+6. `docs/WORK_PLAN.md`;
+7. todos los ADR de `docs/architecture/decisions/`;
+8. `CONTRIBUTING.md`;
+9. `SECURITY.md`;
+10. este archivo;
+11. `docs/IMPLEMENTATION_STATUS.md`;
+12. `docs/research/DIAN_FEV_1_9.md`;
+13. `docs/research/OPEN_QUESTIONS.md`;
+14. `docs/compliance/fev-1.9.md`.
+
+Reglas que no se pueden relajar:
+
+- no inventar reglas, códigos, estados ni defaults DIAN;
+- cada regla DIAN nueva necesita fuente, versión, fixture, test y trazabilidad;
+- `packages/core` no puede depender de Laravel;
+- dominio, firma XAdES, envelope WS-Security y transporte SOAP siguen separados;
+- no guardar ni registrar certificados reales, claves privadas, contraseñas,
+  PIN, clave técnica o payloads sensibles sin una política explícita;
+- no convertir respuestas DIAN en un booleano o string opaco;
+- no afirmar compliance por pasar XSD, Schematron local o criptografía local;
+- no hacer retries automáticos de envíos con resultado remoto ambiguo;
+- no acoplar la aplicación a filesystem local como almacenamiento definitivo;
+- no introducir microservicios, Kubernetes ni brokers adicionales por anticipación;
+- no hacer cambios silenciosos en `openapi/openapi.yaml`.
+
+---
+
+## 2. Estado exacto del repositorio al relevo
+
+La rama estaba limpia y sincronizada con `origin/main` al crear este archivo.
+Los últimos cortes verticales publicados son:
+
+```text
+8dcb7f3 feat(dian): query test-set ZIP status
+1081ff5 feat(dian): build FEV 1.9 submission ZIPs
+8e6c357 feat(dian): query and parse document status
+0b050ac feat(dian): add test-set client facade
+0ce788d feat(dian): parse test-set SOAP responses
+1b8f0bc feat(dian): transport SOAP over verified TLS
+e8124f1 feat(dian): build signed SOAP requests
+f039356 feat(dian): sign FEV 1.9 with XAdES-EPES
+365fd0a feat(dian): run XSLT 3.0 Schematron
+4229763 feat(dian): map core invoices to FEV 1.9
+```
+
+Último quality gate completo observado, con caja FEV 1.9 y Saxon disponibles:
+
+```text
+Paquetes: 81 tests, 438 assertions
+API:       8 tests, 46 assertions
+Total:     89 tests, 484 assertions
+PHPStan:   sin errores
+Pint:      sin errores
+Lint PHP:  sin errores
+OpenAPI:   válido
+```
+
+Los números son una fotografía, no un objetivo fijo. Deben aumentar o cambiar al
+añadir funcionalidad; lo importante es que `make check` permanezca verde.
+
+### 2.1 Qué es usable como librería
+
+`packages/dian` ya puede utilizarse sin Laravel para:
+
+- calcular CUFE-SHA384 FEV 1.9;
+- calcular el código de seguridad del software;
+- generar URL QR por ambiente;
+- mapear el perfil básico de `packages/core` al modelo FEV 1.9;
+- generar UBL 2.1 determinista sin firma;
+- validar XML contra XSD;
+- ejecutar Schematron XSLT 3.0 mediante SaxonJ-HE 12.10;
+- importar credenciales PEM o PKCS#12 en memoria;
+- firmar factura con el perfil XAdES-EPES local implementado;
+- construir nombres XML/ZIP FEV 1.9 con secuencia explícita;
+- crear ZIP síncrono o asíncrono reproducible;
+- construir envelopes SOAP 1.2 con WS-Addressing y WS-Security;
+- enviar por cURL con TLS verificado y timeouts explícitos;
+- ejecutar `SendTestSetAsync`;
+- parsear `UploadDocumentResponse` y SOAP 1.2 Fault;
+- consultar `GetStatus` para un documento;
+- consultar `GetStatusZip` para el `ZipKey` de un paquete;
+- conservar HTTP, XML crudo, códigos, mensajes, errores y binarios Base64.
+
+Esto significa que Tribux tiene dos superficies previstas:
+
+1. **librería PHP:** `tribux/core` + `tribux/dian` para integradores;
+2. **API HTTP opcional:** `apps/api`, que debe orquestar esos paquetes.
+
+No hay que convertir todo en HTTP. La librería debe seguir siendo independiente
+y publicable por Composer cuando el contrato madure.
+
+### 2.2 Qué hace hoy la API
+
+Rutas existentes:
+
+```text
+GET  /health
+POST /v1/invoices
+GET  /v1/invoices/{invoiceId}
+GET  /v1/invoices/{invoiceId}/status
+```
+
+`POST /v1/invoices` actualmente:
+
+1. valida el JSON y `Idempotency-Key`;
+2. mapea el perfil mínimo al dominio;
+3. crea un UUIDv7;
+4. persiste la factura y el payload;
+5. reserva idempotencia por `issuer_id + operación + key + hash`;
+6. devuelve `202` con estado `queued`.
+
+Todavía **no** despacha un job. El contenedor `worker` existe y ejecuta
+`queue:work`, pero no hay un job de emisión implementado.
+
+### 2.3 Brecha real del flujo
+
+```text
+POST /v1/invoices
+  -> validación
+  -> dominio
+  -> invoices.status = queued
+  -> 202
+  -> FIN ACTUAL
+
+Componentes disponibles pero aún no orquestados:
+  CoreInvoiceMapper
+  -> UnsignedInvoiceXmlGenerator
+  -> DianXsdValidator
+  -> SaxonSchematronValidator
+  -> Fev19XadesSigner
+  -> validación firmada
+  -> Fev19FileNameGenerator
+  -> Fev19ZipPackageBuilder
+  -> DianTestSetClient
+  -> DianStatusZipClient
+  -> persistencia de estado/evidencia
+```
+
+El próximo milestone no consiste en crear otro algoritmo aislado. Consiste en
+conectar de forma segura y auditable las piezas que ya existen.
+
+---
+
+## 3. Bloqueos y deudas que deben conocerse antes del worker
+
+### 3.1 El payload HTTP todavía no alcanza para construir una factura DIAN
+
+El request actual contiene `issuer_id`, cliente básico, líneas, precio e
+impuestos. `InvoiceGenerationContext` requiere además, entre otros:
+
+- ambiente DIAN;
+- resolución/autorización, prefijo y rango autorizado;
+- número de factura reservado;
+- clave técnica de la resolución;
+- software ID y PIN;
+- datos tributarios y dirección completa del emisor;
+- datos tributarios y dirección completa del adquirente;
+- códigos de identificación, responsabilidades y esquema tributario;
+- `CustomizationID` e `InvoiceTypeCode` confirmados para el caso;
+- fecha/hora de emisión con zona horaria explícita;
+- medio de pago y fecha de vencimiento;
+- código de unidad por línea;
+- mapeo de impuestos del core a códigos/nombres DIAN;
+- política explícita de escala/redondeo.
+
+No llenar estos campos con constantes silenciosas. Hay que decidir qué proviene
+de la configuración del emisor, qué pertenece al request y qué se resuelve desde
+catálogos versionados.
+
+### 3.2 `issuer_id` aún no es un contexto de seguridad
+
+El cliente envía `issuer_id` libremente y no existe autenticación. Por ello:
+
+- no usar todavía ese valor como autorización para cargar certificados;
+- no exponer la API en una red no confiable;
+- un flujo de habilitación inicial debe estar restringido a CLI/entorno local o
+  a un emisor configurado explícitamente;
+- antes de producción se necesita auth, scopes y resolución de tenant/issuer
+  desde el principal autenticado, no solo desde el JSON.
+
+### 3.3 Numeración y secuencias no están implementadas
+
+`CoreInvoiceMapper` exige un número reservado, pero el API lo trata como opcional.
+También faltan reservas atómicas para:
+
+- número de factura dentro de resolución/prefijo/rango;
+- token anual del nombre XML;
+- token anual del nombre ZIP.
+
+`GetNumberingRange` consulta rangos autorizados; no debe asumirse que asigna un
+número por factura. La asignación interna debe ser transaccional y tolerar
+concurrencia.
+
+Q-008 sigue abierta: el anexo llama hexadecimal a la secuencia, pero el ejemplo
+del envío once usa `00000011` y no `0000000B`. `Fev19FileSequence` acepta el token
+exacto y deliberadamente no lo incrementa. No añadir un autoincremento hasta
+resolver la regla o hacerla una política explícita y trazable.
+
+### 3.4 El puerto `DianGateway` existente no debe conectarse sin rediseño
+
+`packages/dian/src/Contracts/DianGateway.php` recibe `SubmissionRequest` y
+devuelve `SubmissionResult`. Ese resultado contiene un booleano `accepted`, una
+referencia y mensajes simplificados. El contrato es anterior a los parsers SOAP
+actuales y no conserva toda la evidencia requerida.
+
+Antes del worker se debe decidir mediante ADR si:
+
+- se reemplaza/depreca ese puerto;
+- se crean puertos específicos de aplicación para envío y consulta;
+- o se amplía el modelo sin perder HTTP, XML crudo, Fault, códigos y mensajes.
+
+No aplanar `SendTestSetAsyncResponse`, `GetStatusZipResponse` o `DianResponse` a
+un booleano prematuramente.
+
+### 3.5 No existe persistencia de evidencia ni de intentos
+
+La tabla `invoices` solo conserva payload, estado, número y CUFE. Faltan:
+
+- intentos de procesamiento;
+- historial de transiciones;
+- hashes y referencias de XML unsigned/signed;
+- ZIP enviado;
+- request/response SOAP cuando la política lo permita;
+- HTTP status;
+- `ZipKey`;
+- SOAP Fault estructurado;
+- cada código/mensaje DIAN;
+- resultados XSD/Schematron;
+- error local normalizado y contexto de etapa;
+- timestamps de cada etapa.
+
+El XML y ZIP no deben vivir únicamente en el filesystem efímero del contenedor.
+Se necesita un puerto de evidencia/object storage y una decisión documentada
+sobre el primer adaptador. No guardar secretos dentro de la evidencia.
+
+### 3.6 No hay política segura de retry/polling
+
+El transporte no reintenta por diseño. Un timeout puede ocurrir después de que
+DIAN recibió el ZIP. Antes de reenviar se debe consultar estado cuando exista una
+referencia conocida y clasificar el fallo.
+
+`GetStatusZip` debe ejecutarse como job programado/reintentable, no mediante un
+`sleep` bloqueante. Faltan intervalo, máximo de consultas y estados internos.
+Q-007 impide inventar qué códigos DIAN son terminales o reintentables.
+
+### 3.7 Q-009 bloquea declarar un Schematron limpio
+
+El anexo exige el `ProfileID` completo, mientras el XSL compilado v2026 compara
+exactamente `DIAN 2.1`. El ejemplo oficial también produce FAD03 con la caja
+actual. No cambiar el generador para satisfacer silenciosamente el XSL ni ignorar
+el hallazgo.
+
+Hasta resolver Q-009:
+
+- conservar el `ProfileID` basado en el anexo;
+- almacenar el resultado Schematron estructurado;
+- no presentar un documento con FAD03 como plenamente válido;
+- no habilitar un envío automático de producción que omita el fallo;
+- buscar aclaración oficial o evidencia controlada en habilitación.
+
+### 3.8 La interoperabilidad criptográfica sigue pendiente
+
+La firma XAdES y el envelope SOAP pasan validaciones locales con certificados
+efímeros. Falta probar con credenciales reales de habilitación.
+
+Q-010 permanece abierta:
+
+- WSDL vigente: `ThumbprintSHA1`;
+- guía histórica: referencia directa a `BinarySecurityToken`.
+
+El default implementado sigue el WSDL. El perfil alternativo solo se selecciona
+explícitamente. Conservar request, respuesta y perfil elegido en la evidencia de
+la prueba real, sin guardar la clave o contraseña.
+
+---
+
+## 4. Objetivo inmediato
+
+**Objetivo:** procesar una factura `queued` mediante un job reproducible hasta
+obtener un resultado local completo y, después, habilitar un envío controlado a
+DIAN habilitación con evidencia auditable.
+
+El trabajo debe dividirse en cortes pequeños. No implementar todo el worker en
+un único commit.
+
+---
+
+## 5. Plan prioritario por cortes verticales
+
+### P0.1 — ADR de orquestación, evidencia y estados
+
+Crear un ADR antes de fijar contratos difíciles de revertir. Debe decidir:
+
+- frontera entre caso de uso, job Laravel y adaptador DIAN;
+- reemplazo o evolución de `DianGateway`/`SubmissionResult`;
+- modelo de intento de procesamiento;
+- transiciones internas válidas y control de concurrencia;
+- puerto para evidencia binaria y metadatos;
+- qué se almacena en PostgreSQL y qué en object storage;
+- separación entre estado interno y estado reportado por DIAN;
+- política inicial de polling sin reenviar documentos;
+- tratamiento de errores locales, transporte, SOAP Fault y validación DIAN.
+
+Modelo mínimo sugerido para discutir, no para copiar sin ADR:
+
+```text
+invoice_processing_attempts
+  id
+  invoice_id
+  attempt_number
+  environment
+  stage/status interno
+  operation
+  zip_key nullable
+  last_http_status nullable
+  local_error_category/code/message nullable
+  started_at / finished_at
+
+invoice_status_history
+  invoice_id
+  from_status / to_status
+  source (worker, dian, operator)
+  attempt_id nullable
+  occurred_at
+
+invoice_evidence
+  invoice_id / attempt_id
+  kind
+  storage_reference
+  sha256
+  bytes
+  media_type
+  created_at
+```
+
+Tipos iniciales de evidencia a considerar:
+
+```text
+unsigned_xml
+xsd_unsigned_result
+schematron_result
+signed_xml
+xsd_signed_result
+submission_zip
+send_test_set_response_xml
+get_status_zip_response_xml
+soap_fault_detail
+```
+
+Definition of Done:
+
+- ADR aceptado;
+- contratos no pierden errores ni respuesta original;
+- no se serializan credenciales;
+- tests de transiciones y concurrencia definidos;
+- documentación de qué evidencia contiene PII.
+
+Commit sugerido:
+
+```text
+docs(architecture): define invoice processing flow
+```
+
+### P0.2 — Persistencia de intentos, estados y referencias de evidencia
+
+Implementar primero persistencia sin llamar a DIAN:
+
+- migraciones nuevas; no reescribir una migración publicada silenciosamente;
+- repositorio de procesamiento con lock transaccional;
+- transición `queued -> building` atómica;
+- impedir que dos workers procesen simultáneamente la misma factura;
+- persistir historial append-only;
+- persistir referencias/hash/tamaño de evidencia;
+- conservar error estructurado por etapa;
+- tests SQLite rápidos y, cuando corresponda, integración PostgreSQL.
+
+No borrar intentos anteriores al reintentar. No sobrescribir XML firmado como si
+fuera el mismo artefacto.
+
+Definition of Done:
+
+- migraciones reversibles;
+- concurrencia/idempotencia probadas;
+- `GET status` sigue funcionando;
+- API no expone detalles sensibles;
+- errores Problem Details siguen siendo compatibles.
+
+Commit sugerido:
+
+```text
+feat(api): persist invoice processing attempts
+```
+
+### P0.3 — Configuración del emisor y proveedores de secretos
+
+Crear puertos explícitos, con dobles en memoria para tests:
+
+- `IssuerProfileProvider` o nombre equivalente para datos no secretos;
+- `SigningCredentialsProvider` para obtener credenciales en memoria;
+- proveedor/reserva de numeración;
+- proveedor/reserva de secuencias XML/ZIP;
+- `EvidenceStore`;
+- reloj ya existe en la aplicación; reutilizarlo.
+
+Separar:
+
+**Configuración no secreta**
+
+- NIT/DV, razón social, dirección y responsabilidades;
+- ambiente;
+- software ID;
+- resolución, prefijo, rango y vigencia;
+- códigos DIAN aplicables;
+- `testSetId` para habilitación;
+- referencia al secreto/certificado;
+- código de proveedor `ppp`;
+- tax mappings y unidades permitidas.
+
+**Secretos**
+
+- PIN de software;
+- clave técnica;
+- P12/PFX/PEM y contraseña;
+- cualquier token externo.
+
+Los secretos no deben llegar en el JSON público ni guardarse en logs, jobs
+serializados o tablas de evidencia. Si un job Laravel se serializa, debe guardar
+solo `invoice_id` y resolver secretos al ejecutarse.
+
+Para el primer flujo local se puede implementar un adaptador de configuración
+explícita/montada, siempre detrás del puerto. No diseñar todavía un HSM.
+
+Definition of Done:
+
+- fixture de emisor sintético sin secretos reales;
+- proveedor secreto falso en tests;
+- errores claros cuando falta configuración;
+- ninguna contraseña aparece al serializar excepciones/DTO/jobs;
+- documentación de variables/mounts sin valores reales.
+
+Commits sugeridos:
+
+```text
+feat(api): resolve versioned issuer profiles
+feat(api): load signing credentials securely
+```
+
+### P0.4 — Completar el contrato mínimo de entrada para generar UBL
+
+Comparar `CreateInvoiceRequest`, OpenAPI, dominio e
+`InvoiceGenerationContext`. Diseñar los campos faltantes sin copiar el UBL en la
+API.
+
+Decisiones mínimas:
+
+- dirección y datos tributarios del adquirente: request o registro existente;
+- `unit_code` por línea;
+- medio/forma de pago y vencimiento;
+- número: proporcionado, reservado por Tribux o ambas modalidades explícitas;
+- responsabilidades/códigos tributarios estables de Tribux y su mapper DIAN;
+- descuentos/cargos fuera o dentro del primer perfil;
+- zona horaria obligatoria de emisión;
+- política para impuestos ausentes y líneas sin impuesto, basada en fuente.
+
+Toda modificación se diseña primero en `openapi/openapi.yaml`. Si rompe el
+contrato pre-alpha, registrarla en `CHANGELOG.md`, actualizar ejemplos y tests.
+No inventar dirección, unidad, medio de pago o DV por defecto.
+
+Definition of Done:
+
+- OpenAPI válido;
+- request Laravel y schema OpenAPI equivalentes;
+- mapper JSON -> core cubierto con tests positivos/negativos;
+- mapper core -> FEV 1.9 no necesita constantes ocultas de negocio;
+- ejemplo `examples/invoice.minimal.json` actualizado.
+
+Commit sugerido:
+
+```text
+feat(api): enrich the invoice issuance contract
+```
+
+### P0.5 — Numeración y secuencias atómicas
+
+Implementar un slice independiente:
+
+- modelo versionado de autorización/resolución;
+- validar prefijo, rango y vigencia contra fuente/configuración;
+- reserva transaccional del siguiente número;
+- reserva anual separada para XML y ZIP;
+- no reutilizar números tras un fallo ambiguo;
+- concurrencia probada con dos reservas simultáneas;
+- política de secuencia FEV explícita mientras Q-008 siga abierta.
+
+Después implementar `GetNumberingRange` con el WSDL oficial:
+
+- request document/literal;
+- modelos de `NumberRangeResponseList` y elementos;
+- parser que conserve campos opcionales, HTTP, Fault y XML crudo;
+- fixture positivo, nulo, Fault y negativo;
+- cliente de librería reemplazable;
+- no convertir una consulta de rangos en asignación automática sin validación.
+
+Commits sugeridos:
+
+```text
+feat(core): model numbering authorizations
+feat(api): reserve invoice numbers atomically
+feat(dian): query authorized numbering ranges
+```
+
+### P0.6 — Pipeline local de construcción y validación
+
+Crear un caso de uso independiente de Laravel, coordinado después por el job.
+Entrada recomendada: ID de factura + perfil de emisor resuelto + hora explícita.
+
+Etapas:
+
+1. cargar factura y payload inmutable;
+2. reservar número/secuencias si todavía no existen;
+3. construir `InvoiceGenerationContext`;
+4. ejecutar `CoreInvoiceMapper`;
+5. conservar CUFE;
+6. generar XML unsigned;
+7. calcular SHA-256 y persistir evidencia;
+8. validar XSD unsigned;
+9. ejecutar Schematron y persistir todos los mensajes;
+10. detener el flujo con error estructurado ante validación bloqueante;
+11. no llamar a red.
+
+Tests:
+
+- happy path con fixture sintético;
+- falta de número/configuración;
+- XSD inválido;
+- tax mapping ausente;
+- cantidad de unidades distinta a líneas;
+- moneda incompatible;
+- error Schematron conservado sin aplanar;
+- reejecución idempotente de una etapa ya persistida.
+
+Q-009 debe permanecer visible. Un test no puede marcar como válido un documento
+con FAD03 simplemente para desbloquear el worker.
+
+Commit sugerido:
+
+```text
+feat(api): build and validate queued invoices
+```
+
+### P0.7 — Firma, validación firmada y empaquetado
+
+Una vez verde el pipeline unsigned:
+
+1. resolver `SigningCredentials` solo dentro del worker;
+2. firmar con hora explícita y rol correcto;
+3. validar vigencia y correspondencia certificado/clave;
+4. persistir XML firmado + hash;
+5. volver a validar XSD firmado;
+6. ejecutar validación adicional requerida sin modificar el XML firmado;
+7. construir nombres con `Fev19FileNameGenerator`;
+8. empaquetar con `Fev19ZipPackageBuilder`;
+9. persistir ZIP + hash;
+10. transición controlada `building -> signed`.
+
+Nunca reformatear el XML después de firmarlo. Nunca guardar P12/PFX o contraseña
+como evidencia.
+
+Tests:
+
+- certificado efímero;
+- certificado vencido/no vigente;
+- clave no correspondiente;
+- XML firmado XSD-valid con caja oficial cuando esté disponible;
+- ZIP contiene exactamente el XML firmado;
+- nombres comparten emisor/proveedor/año;
+- repetición produce evidencia coherente o detecta intento previo.
+
+Commit sugerido:
+
+```text
+feat(api): sign and package queued invoices
+```
+
+### P0.8 — Adaptador de envío de test set sin red real
+
+Antes de habilitación real, crear un fake fiel de la frontera externa:
+
+- puerto específico de envío de paquete de habilitación;
+- adaptador sobre `DianTestSetClient`;
+- fake que devuelve `UploadDocumentResponse`, Fault y errores de transporte;
+- persistir `rawXml`, HTTP, Fault, mensajes y `ZipKey`;
+- transición `signed -> submitted` solo cuando la evidencia de envío lo permita;
+- nunca interpretar `ZipKey` como aceptación;
+- job de consulta separado sobre `DianStatusZipClient`;
+- no usar `sleep` dentro del worker;
+- no reenviar automáticamente tras timeout ambiguo.
+
+Casos mínimos:
+
+- respuesta con `ZipKey`;
+- respuesta sin `ZipKey` y mensajes;
+- SOAP Fault HTTP 500;
+- XML malformado;
+- timeout de conexión;
+- timeout total ambiguo;
+- respuesta demasiado grande;
+- consulta con lista de `DianResponse` y miembros nulos.
+
+Commits sugeridos:
+
+```text
+feat(api): submit signed test-set packages
+feat(api): poll test-set package status
+```
+
+### P0.9 — Job Laravel y despacho post-commit
+
+Cuando el caso de uso sea comprobable con fakes:
+
+- crear `ProcessInvoiceJob` con solo `invoiceId` serializado;
+- despachar después del commit que crea la factura;
+- definir cola específica y timeout basado en medición;
+- evitar doble procesamiento mediante lock/attempt activo;
+- mantener etapas idempotentes;
+- registrar correlation ID sin guardar secretos;
+- actualizar estado e historial en cada transición;
+- configurar manejo de job fallido sin convertir automáticamente todo en retry;
+- revisar `--tries=3` del `compose.yaml`: hoy sería peligroso para envíos
+  ambiguos si el job completo se repite. Separar jobs por etapa o controlar
+  explícitamente qué excepción puede repetirse.
+
+Tests:
+
+- `POST` crea factura y despacha exactamente un job after-commit;
+- replay de idempotencia no despacha otra factura;
+- job duplicado no realiza un segundo envío;
+- fallo local seguro puede reintentarse;
+- fallo remoto ambiguo queda pendiente de reconciliación/consulta;
+- endpoint de estado refleja transiciones internas.
+
+Commit sugerido:
+
+```text
+feat(api): process invoices asynchronously
+```
+
+### P0.10 — Comando reproducible de habilitación
+
+Crear una herramienta explícita, no un test que corra en cada PR. Puede ser un
+comando Artisan o script pequeño que use los casos de uso existentes.
+
+Requisitos:
+
+- ambiente fijo a habilitación salvo opción explícita futura;
+- `--dry-run` por defecto;
+- `--send` explícito para red real;
+- carga de P12/PFX desde secret mount o stdin seguro, no desde Git;
+- contraseña fuera de argumentos visibles del proceso cuando sea posible;
+- `testSetId`, software ID/PIN, resolución y clave técnica provistos por el
+  usuario habilitado;
+- imprimir IDs, hashes y rutas/referencias de evidencia, no secretos/XML completo;
+- elegir `ThumbprintSHA1` por default y registrar el perfil;
+- permitir `BinarySecurityToken` solo como prueba explícita para Q-010;
+- conservar request/response SOAP de forma segura;
+- nunca actualizar el manifiesto oficial automáticamente.
+
+Definition of Done:
+
+- documentación paso a paso desde un clone limpio;
+- dry-run genera, valida, firma y empaqueta sin red;
+- envío real conserva HTTP/raw XML/Fault/ZipKey;
+- consulta posterior usa `GetStatusZip`;
+- cualquier dato real en fixtures públicos está anonimizado o reemplazado;
+- la prueba no se ejecuta en CI general.
+
+Commit sugerido:
+
+```text
+feat(cli): add controlled DIAN habilitation flow
+```
+
+### P0.11 — Primera evidencia real de habilitación
+
+Esta tarea necesita coordinación humana y credenciales DIAN. No se puede cerrar
+solo con código local.
+
+Ejecutar y documentar al menos:
+
+1. un envío mínimo controlado;
+2. una respuesta aceptada o su estado real documentado;
+3. un rechazo controlado que no exponga datos sensibles;
+4. consulta por `ZipKey`;
+5. perfil WS-Security utilizado;
+6. hashes de XML/ZIP/request/response;
+7. códigos y mensajes originales;
+8. tiempos y endpoint;
+9. resultado de Q-003, Q-009 y Q-010;
+10. fixture de regresión anonimizado cuando sea legal publicarlo.
+
+Solo después se puede cambiar una fila relevante de “localmente validado” a un
+estado que refleje interoperabilidad real. No usar la palabra “certificado por
+DIAN” salvo que exista base oficial para hacerlo.
+
+Commit sugerido:
+
+```text
+test(compliance): record habilitation evidence
+```
+
+---
+
+## 6. Trabajo posterior al primer envío de habilitación
+
+### P1 — Dominio y factura completa
+
+- descuentos por línea/documento;
+- cargos por línea/documento;
+- retenciones;
+- líneas gratuitas y precios de referencia;
+- impuestos excluidos/exentos según fuente;
+- anticipos y redondeos cuando apliquen;
+- múltiples medios/condiciones de pago si el perfil lo exige;
+- fechas y zonas horarias como conceptos explícitos;
+- direcciones y terceros completos en core sin copiar UBL;
+- estados y transiciones formalizados mediante ADR;
+- property-based tests para aritmética/límites.
+
+Cada regla monetaria debe declarar escala y `DecimalRoundingMode`. No usar
+`float`.
+
+### P1 — Operaciones DIAN restantes del primer flujo
+
+- `SendBillSync` usando el `DianResponse` ya normalizado;
+- `GetNumberingRange` y sus tipos de respuesta completos;
+- evaluar `SendBillAsync` solo si el flujo/documentación lo requiere;
+- taxonomía de fallos/reconciliación basada en evidencia;
+- política de retry por operación, no genérica;
+- circuit breaker solo después de medir necesidad.
+
+### P1 — Seguridad de API y multiempresa
+
+Antes de exposición pública:
+
+- autenticación;
+- API keys o tokens con scopes;
+- tenant/issuer derivado del principal;
+- autorización en todas las consultas por ID;
+- rotación/revocación de credenciales;
+- rate limiting;
+- auditoría de acciones administrativas;
+- pruebas de aislamiento entre dos emisores;
+- canal privado para vulnerabilidades en GitHub;
+- revisión de PII en errores/logs.
+
+### P1 — Entrega y ciclo operativo
+
+- AttachedDocument basado en sección 6.4;
+- entrega al adquirente;
+- representación gráfica PDF como componente separado;
+- QR visible en representación;
+- webhooks firmados e idempotentes;
+- dead-letter/reconciliación;
+- política de retención configurable;
+- observabilidad con métricas/trazas sin secretos.
+
+### P2 — Más tipos documentales
+
+En orden sugerido después de estabilizar factura:
+
+1. nota crédito;
+2. nota débito;
+3. AttachedDocument/eventos necesarios;
+4. documento soporte;
+5. documento equivalente;
+6. nómina;
+7. RADIAN.
+
+Cada familia necesita su propia matriz de compliance, fixtures y versión.
+
+### P2 — Comunidad y release
+
+- documentación local publicable y ADR de herramienta;
+- branch protection de GitHub;
+- proceso de release/SemVer;
+- publicación de paquetes Composer cuando el API PHP sea estable;
+- changelog por comportamiento observable;
+- imágenes multi-arch;
+- SBOM y firma de releases;
+- guía de backups/restauración;
+- SDKs solo después de estabilizar OpenAPI.
+
+---
+
+## 7. Preguntas abiertas que pueden bloquear decisiones
+
+Fuente completa: `docs/research/OPEN_QUESTIONS.md`.
+
+| ID | Impacto inmediato | Acción segura |
+|---|---|---|
+| Q-001 | Redistribución de caja/anexo | Seguir descargando por URL+hash; no versionar binarios |
+| Q-002 | Operaciones exactas por flujo | Implementar solo operaciones confirmadas por WSDL/anexo y evidencia |
+| Q-003 | Firma XAdES aceptada remotamente | Probar con certificado real en habilitación y conservar evidencia |
+| Q-004 | Catálogos/versionado | Inventariar dependencias por campo antes de crear un catálogo genérico |
+| Q-005 | Evidencia y retención | Diseñar política configurable y buscar fuente jurídica/técnica |
+| Q-006 | Posición jurídica open source | Mantener disclaimer; solicitar revisión independiente |
+| Q-007 | Estados/retries | No inferir códigos terminales; preservar respuesta y reconciliar |
+| Q-008 | Incremento de nombres | Mantener token explícito; no autoincrementar silenciosamente |
+| Q-009 | `ProfileID` vs XSL v2026 | No ignorar FAD03 ni cambiar el anexo; buscar aclaración/evidencia |
+| Q-010 | Referencia X.509 SOAP | Default WSDL Thumbprint; probar ambos explícitamente en habilitación |
+
+Cuando aparezca una duda nueva, añadir Q-011 en adelante con:
+
+- pregunta;
+- por qué importa;
+- fuente consultada;
+- hipótesis marcada como hipótesis;
+- validación pendiente;
+- estado.
+
+---
+
+## 8. Definition of Done del milestone “primera factura de habilitación”
+
+No marcar la Fase 1 terminada hasta cumplir todo:
+
+- [ ] clone limpio y setup documentado;
+- [ ] artefactos DIAN/Saxon descargados y verificados por hash;
+- [ ] emisor de habilitación configurado sin secretos en Git;
+- [ ] resolución, software, PIN, clave técnica, certificado y `testSetId`
+      resueltos mediante proveedores seguros;
+- [ ] número y secuencias reservados atómicamente;
+- [ ] payload API suficiente o comando con fixture completo trazable;
+- [ ] XML unsigned generado de forma determinista;
+- [ ] XSD unsigned válido;
+- [ ] Schematron ejecutado y Q-009 resuelta o documentada sin falsear validez;
+- [ ] CUFE reproducible;
+- [ ] firma XAdES generada con certificado de habilitación;
+- [ ] XML firmado validado y no modificado después;
+- [ ] nombre XML y ZIP correctos;
+- [ ] ZIP contiene el documento esperado;
+- [ ] `SendTestSetAsync` enviado una sola vez por intento;
+- [ ] HTTP, XML crudo, Fault/mensajes y `ZipKey` preservados;
+- [ ] `GetStatusZip` consultado sin polling bloqueante;
+- [ ] estado interno separado de estado DIAN;
+- [ ] evidencia con hashes y timestamps;
+- [ ] fixture aceptado y rechazo controlado cuando sea publicable;
+- [ ] pruebas unitarias/integración verdes;
+- [ ] guía reproducible para otro contribuidor;
+- [ ] compliance matrix y changelog actualizados;
+- [ ] ninguna clave, contraseña o PII sensible en commit/log/output.
+
+---
+
+## 9. Comandos para reanudar en una máquina limpia
+
+### 9.1 Código y dependencias
+
+```bash
+git pull --ff-only origin main
+git status --short --branch
+make setup
+```
+
+Requisitos conocidos:
+
+- PHP 8.4 o 8.5;
+- Composer;
+- Node.js 24;
+- Docker;
+- Java para Schematron/Saxon;
+- extensiones PHP declaradas por Composer, incluida `ext-zip`.
+
+### 9.2 Artefactos oficiales locales
+
+```bash
+composer dian:fetch-fev19
+composer dian:extract-fev19
+composer tools:fetch-saxon
+composer tools:extract-saxon
+```
+
+Rutas estándar resultantes:
+
+```text
+var/dian/fev/1.9/toolbox
+var/tools/saxon/12.10/dist
+```
+
+No actualizar hashes del manifiesto automáticamente si una descarga cambia.
+Detenerse, comparar la fuente y registrar el nuevo corte.
+
+### 9.3 Quality gate completo
+
+Linux/macOS:
+
+```bash
+export TRIBUX_FEV19_TOOLBOX="$PWD/var/dian/fev/1.9/toolbox"
+export TRIBUX_SAXON_HOME="$PWD/var/tools/saxon/12.10/dist"
+make check
+```
+
+PowerShell:
+
+```powershell
+$env:TRIBUX_FEV19_TOOLBOX = (Resolve-Path 'var/dian/fev/1.9/toolbox').Path
+$env:TRIBUX_SAXON_HOME = (Resolve-Path 'var/tools/saxon/12.10/dist').Path
+make check
+```
+
+Sin esas variables algunos tests de integración oficial se omiten. Para una
+revisión de compliance local se deben definir y verificar que no haya skips
+inesperados.
+
+### 9.4 Infraestructura local
+
+```bash
+make infra-up
+make up
+docker compose ps
+docker compose logs -f api worker
+```
+
+La API queda por defecto en `http://localhost:8080`.
+
+### 9.5 Flujo HTTP actual
+
+```bash
+curl -X POST http://localhost:8080/v1/invoices \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: invoice-demo-0001' \
+  --data @examples/invoice.minimal.json
+```
+
+Esperar `202 queued`; actualmente no habrá envío DIAN hasta implementar el job.
+
+---
+
+## 10. Estrategia de commits y documentación
+
+El usuario pidió avanzar mediante commits pequeños. Mantener Conventional
+Commits, ejecutar pruebas proporcionales antes de cada commit y `make check`
+antes de publicar un corte completo.
+
+Para una regla DIAN, el mismo commit o una secuencia atómica debe incluir:
+
+```text
+fuente oficial/versionada
+-> fixture positivo
+-> fixture negativo cuando aplique
+-> implementación
+-> test
+-> error entendible
+-> docs públicas si cambia contrato
+-> compliance matrix
+-> CHANGELOG si es observable
+```
+
+No mezclar en un commit:
+
+- refactor amplio no relacionado;
+- cambios de API y migraciones sin tests;
+- actualización de artefactos oficiales sin investigación;
+- secretos o fixtures reales no anonimizados.
+
+Al finalizar cada corte:
+
+1. `git diff --check`;
+2. tests focalizados;
+3. PHPStan/lint;
+4. `make check` si el corte está completo;
+5. revisar staged diff;
+6. commit convencional;
+7. push autorizado a `origin/main` según el flujo actual;
+8. actualizar este archivo si cambia la prioridad o se cierra un bloqueo.
+
+---
+
+## 11. Orden recomendado para la próxima sesión
+
+Empezar exactamente así:
+
+1. verificar que `HEAD` incluye `8dcb7f3` o commits posteriores;
+2. ejecutar el quality gate completo con artefactos oficiales;
+3. crear ADR de orquestación/evidencia/estados (P0.1);
+4. implementar persistencia de intentos y transiciones (P0.2);
+5. introducir perfiles de emisor y proveedores de secretos con fakes (P0.3);
+6. completar el contrato mínimo necesario para construir UBL (P0.4);
+7. abordar numeración/secuencias (P0.5);
+8. conectar pipeline local sin red (P0.6);
+9. firmar/empaquetar (P0.7);
+10. integrar envío/consulta con fakes (P0.8);
+11. habilitar job Laravel (P0.9);
+12. crear comando controlado de habilitación (P0.10);
+13. coordinar credenciales humanas y primera evidencia real (P0.11).
+
+No comenzar la siguiente sesión implementando directamente un POST a DIAN desde
+el controller. El siguiente trabajo correcto es el ADR y la persistencia de
+intentos/evidencia que harán seguro y auditable el worker.
+
+---
+
+## 12. Resultado esperado a medio plazo
+
+La experiencia objetivo es:
+
+```text
+Usuario de librería PHP
+  -> configura perfil/credenciales mediante puertos
+  -> construye/valida/firma/empaqueta
+  -> usa clientes DIAN explícitos
+  -> conserva respuestas completas
+
+Usuario de API
+  -> POST /v1/invoices
+  -> 202 + recurso consultable
+  -> worker seguro y auditable
+  -> GET status con estado interno + referencia DIAN normalizada
+  -> evidencia protegida
+```
+
+Tribux debe ser usable como librería **y** como API self-hosted. La API es una
+capa de conveniencia y operación; no debe apropiarse del dominio ni hacer que la
+librería dependa de Laravel.
