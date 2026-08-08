@@ -135,7 +135,7 @@ fecha. Contiene el documento original como `text/xml`/`UTF-8` y referencias a
 respuestas/eventos. Es parte del flujo de entrega al adquirente, pero no es el
 ZIP de transporte a DIAN y no bloquea la primera transmisión de habilitación.
 
-## Firma: confirmado y pendiente
+## Firma: política confirmada, firmador pendiente
 
 La sección 6.5.10 confirma firma **XAdES-EPES**, canonicalización XML C14N
 `http://www.w3.org/TR/2001/REC-xml-c14n-20010315`, firma enveloped y grupos como
@@ -143,10 +143,32 @@ La sección 6.5.10 confirma firma **XAdES-EPES**, canonicalización XML C14N
 `SignaturePolicyIdentifier` y `SignerRole`. La tabla admite RSA con SHA-256,
 SHA-384 o SHA-512.
 
-Todavía falta cerrar de forma reproducible el identificador/hash exacto de la
-política y construir un fixture firmado con certificado exclusivamente de
-pruebas. Por eso Tribux no expone aún una clase de firma ni afirma compatibilidad
-XAdES.
+La [política de firma DIAN v2](https://facturaelectronica.dian.gov.co/politicadefirma/v2/politicadefirmav2.pdf)
+fue descargada directamente y registrada con 1.272.898 bytes y SHA-256
+`74ca0cbed706e5a233818a34b48b1241e5490439d49df48e7c1a715eb9a8af46`.
+Su SHA-384 en Base64 es
+`EQC0kiWPaAME6IsEZ7WuaTWJ97Zmf6hIO69rMCVURmQxBB9ebgLrjhL5BArQ0a0l`,
+idéntico al publicado en los ejemplos recientes de la caja. El identificador es
+la URL anterior y el método es
+`http://www.w3.org/2001/04/xmldsig-more#sha384`.
+
+La política define los roles `supplier` para el obligado a facturar y
+`third party` para un proveedor tecnológico autorizado. También advierte que el
+XML firmado no debe alterarse luego con pretty-print, indentación o cambios de
+espacios/control que invaliden el canon.
+
+La caja mezcla ejemplos históricos con identificadores `/v1/`, SHA-256 y
+ejemplos posteriores `/v2/` con SHA-384. Tribux registra el perfil `/v2/`
+verificado contra el PDF servido actualmente, pero todavía necesita construir y
+validar un fixture completo firmado con certificado exclusivamente de pruebas.
+Por eso no afirma aún compatibilidad XAdES ni aceptación en habilitación.
+
+## Inconsistencia pendiente en el consecutivo de archivos
+
+Las secciones 6.5.7/6.5.8 llaman hexadecimal al consecutivo de ocho caracteres,
+pero el ejemplo del “décimo primer” envío termina en `00000011`; una conversión
+decimal-a-hexadecimal produciría `0000000B`. No se implementará el generador
+hasta contrastar esta diferencia con la validación real o una aclaración oficial.
 
 ## Fuentes oficiales consultadas
 
@@ -154,6 +176,7 @@ XAdES.
 - [Anexo Técnico FEV 1.9](https://www.dian.gov.co/impuestos/factura-electronica/Documents/Anexo-Tecnico-Factura-Electronica-de-Venta-vr-1-9.pdf)
 - [Caja de herramientas FE V19 (v2026)](https://www.dian.gov.co/impuestos/factura-electronica/Documents/Caja-de-herramientas-FE-V19-V2026.zip)
 - [Guía para consumo de Web Services](https://www.dian.gov.co/impuestos/factura-electronica/Documents/Guia-Herramienta-para-el-Consumo-de-Web-Services.pdf)
+- [Política de firma DIAN v2](https://facturaelectronica.dian.gov.co/politicadefirma/v2/politicadefirmav2.pdf)
 - [WSDL de habilitación](https://vpfe-hab.dian.gov.co/WcfDianCustomerServices.svc?singleWsdl)
 - [WSDL de producción](https://vpfe.dian.gov.co/WcfDianCustomerServices.svc?singleWsdl)
 

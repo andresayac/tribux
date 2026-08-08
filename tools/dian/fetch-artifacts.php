@@ -12,7 +12,7 @@ try {
         throw new \RuntimeException(sprintf('Cannot read manifest: %s', $manifestPath));
     }
 
-    /** @var array{default_target:string,artifacts:list<array{id:string,file:string,url:string,bytes:int,sha256:string}>} $manifest */
+    /** @var array{default_target:string,artifacts:list<array{id:string,file:string,url:string,bytes:int,sha256:string,sha384_base64?:string}>} $manifest */
     $manifest = json_decode($manifestJson, true, flags: JSON_THROW_ON_ERROR);
     $targetDirectory = $argv[2] ?? $repositoryRoot.'/'.str_replace('/', DIRECTORY_SEPARATOR, $manifest['default_target']);
 
@@ -36,6 +36,14 @@ try {
         $destination = $targetDirectory.DIRECTORY_SEPARATOR.$artifact['file'];
 
         if (is_file($destination) && hash_file('sha256', $destination) === $artifact['sha256']) {
+            if (isset($artifact['sha384_base64'])) {
+                $actualSha384 = base64_encode(hash_file('sha384', $destination, true));
+
+                if (! hash_equals($artifact['sha384_base64'], $actualSha384)) {
+                    throw new \RuntimeException(sprintf('SHA-384 check failed for %s.', $artifact['id']));
+                }
+            }
+
             fwrite(STDOUT, sprintf("verified  %s\n", $artifact['id']));
             continue;
         }
@@ -88,6 +96,14 @@ try {
                     $actualBytes === false ? 'unknown' : (string) $actualBytes,
                     $actualHash,
                 ));
+            }
+
+            if (isset($artifact['sha384_base64'])) {
+                $actualSha384 = base64_encode(hash_file('sha384', $temporary, true));
+
+                if (! hash_equals($artifact['sha384_base64'], $actualSha384)) {
+                    throw new \RuntimeException(sprintf('SHA-384 check failed for %s.', $artifact['id']));
+                }
             }
 
             if (! rename($temporary, $destination)) {

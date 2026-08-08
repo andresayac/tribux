@@ -1,0 +1,20 @@
+{
+  "source": {
+    "document": "Politica de Firma de los Documentos XML de Facturacion Electronica version 2",
+    "url": "https://facturaelectronica.dian.gov.co/politicadefirma/v2/politicadefirmav2.pdf",
+    "sections": "5.2, 7, 10.2 and 12",
+    "toolbox_examples": [
+      "ejemplificacionIBUA-3.xml",
+      "ejemplificacionICUI-1.xml"
+    ],
+    "verified_on": "2026-08-08"
+  },
+  "policy": {
+    "bytes": 1272898,
+    "sha256": "74ca0cbed706e5a233818a34b48b1241e5490439d49df48e7c1a715eb9a8af46",
+    "identifier": "https://facturaelectronica.dian.gov.co/politicadefirma/v2/politicadefirmav2.pdf",
+    "digest_method": "http://www.w3.org/2001/04/xmldsig-more#sha384",
+    "digest_value": "EQC0kiWPaAME6IsEZ7WuaTWJ97Zmf6hIO69rMCVURmQxBB9ebgLrjhL5BArQ0a0l"
+  },
+  "signer_roles": ["supplier", "third party"]
+}

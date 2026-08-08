@@ -13,3 +13,4 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Persistencia PostgreSQL, entorno Docker Compose, worker y quality gate automatizado.
 - Investigación trazable FEV 1.9, manifiesto reproducible de artefactos y matriz de compliance inicial.
 - Cálculo CUFE-SHA384 con fixtures oficiales y perfiles versionados de ambiente/endpoints SOAP.
+- Política de firma DIAN v2 y roles XAdES registrados con hashes verificables.

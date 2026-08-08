@@ -44,3 +44,7 @@ Submission/
 ```
 
 Cualquier implementación futura debe seguir `AGENTS.md` y la matriz de compliance.
+
+`Signing/DianSignaturePolicy` expone únicamente metadatos verificados de la
+política. No maneja certificados ni claves privadas y no equivale a un firmador
+XAdES.

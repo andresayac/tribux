@@ -1,7 +1,7 @@
 # Artefactos DIAN FEV 1.9
 
 El repositorio conserva solamente metadatos, URLs oficiales y hashes. Los
-artefactos descargados no se redistribuyen porque sus condiciones de
+artefactos descargados —incluida la política de firma— no se redistribuyen porque sus condiciones de
 redistribución aún no han sido revisadas.
 
 Para obtener una copia local verificada:

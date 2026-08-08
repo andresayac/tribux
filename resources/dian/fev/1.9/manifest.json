@@ -34,6 +34,15 @@
       "purpose": "Official implementation guide; historical guidance must be reconciled with FEV 1.9 and live WSDLs."
     },
     {
+      "id": "signature-policy-v2",
+      "file": "politicadefirmav2.pdf",
+      "url": "https://facturaelectronica.dian.gov.co/politicadefirma/v2/politicadefirmav2.pdf",
+      "bytes": 1272898,
+      "sha256": "74ca0cbed706e5a233818a34b48b1241e5490439d49df48e7c1a715eb9a8af46",
+      "sha384_base64": "EQC0kiWPaAME6IsEZ7WuaTWJ97Zmf6hIO69rMCVURmQxBB9ebgLrjhL5BArQ0a0l",
+      "purpose": "Official XAdES signature policy document and digest source."
+    },
+    {
       "id": "habilitation-single-wsdl",
       "file": "habilitation.single.wsdl",
       "url": "https://vpfe-hab.dian.gov.co/WcfDianCustomerServices.svc?singleWsdl",

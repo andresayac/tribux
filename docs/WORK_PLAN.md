@@ -37,7 +37,7 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 - [x] Identificar WSDL/endpoints de habilitación y producción.
 - [x] Documentar métodos SOAP necesarios para la primera factura.
 - [x] Confirmar algoritmo y composición de CUFE.
-- [ ] Confirmar perfil completo de firma y canonicalización (XAdES-EPES/C14N confirmados; política/hash pendientes).
+- [ ] Confirmar perfil completo de firma y canonicalización (XAdES-EPES, C14N y política/hash v2 confirmados; fixture firmado pendiente).
 - [x] Documentar ZIP/naming/AttachedDocument si aplica al flujo.
 - [x] Crear matriz `requisito -> fuente -> implementación -> test`.
 

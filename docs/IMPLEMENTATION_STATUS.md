@@ -29,6 +29,7 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 | Puerto de transporte DIAN | `packages/dian/src/Contracts/DianGateway.php` |
 | CUFE FEV 1.9 | `packages/dian/src/Cufe` |
 | Perfil de endpoints/operaciones | `packages/dian/src/Soap` |
+| Metadatos de política de firma | `packages/dian/src/Signing` |
 | Artefactos oficiales verificables | `resources/dian/fev/1.9/manifest.json` |
 | Matriz FEV 1.9 | `docs/compliance/fev-1.9.md` |
 | Casos de uso API | `apps/api/app/Application` |
@@ -53,7 +54,8 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 - CUFE-SHA384 FEV 1.9 contra el ejemplo oficial positivo y un fixture negativo;
 - códigos de ambiente, defaults de endpoints y acciones SOAP iniciales
   documentados y cubiertos por tests;
-- manifiesto reproducible con hashes de anexo, caja, guía y WSDL oficiales.
+- manifiesto reproducible con hashes de anexo, caja, política y WSDL oficiales;
+- política de firma DIAN v2 verificada por SHA-256/SHA-384 y roles tipados.
 
 ## No implementado todavía
 
