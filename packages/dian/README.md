@@ -62,3 +62,9 @@ terceros, impuestos y totales ya estén normalizados; no infiere reglas fiscales
 El fixture de construcción completo está en
 `tests/Fixtures/fev-1.9/invoice/minimal-priced-line.json` y su uso se prueba en
 `UnsignedInvoiceXmlGeneratorTest`.
+
+`CoreInvoiceMapper` conecta el perfil básico de `tribux/core` con ese documento.
+Requiere un `InvoiceGenerationContext` enriquecido por la aplicación: resolución,
+software/PIN, clave técnica, datos DIAN de las partes, unidades y mapeos de
+impuestos. Los secretos permanecen privados en memoria y no se infieren desde el
+payload genérico.

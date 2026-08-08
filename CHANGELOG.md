@@ -20,3 +20,4 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Aritmética decimal exacta en el core con escala y redondeo explícitos.
 - Calculador básico de líneas, impuestos porcentuales y totales de factura.
 - Totales tributarios UBL con múltiples subtotales y tarifas.
+- Mapper del perfil básico de factura core al documento FEV 1.9 enriquecido.

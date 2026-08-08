@@ -63,7 +63,7 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 ### 1.4 Generación y validación
 
 - [x] JSON -> Domain para el contrato mínimo actual.
-- [ ] Domain -> DIAN document model.
+- [x] Domain -> DIAN document model para el perfil básico sin descuentos/cargos.
 - [x] DIAN model -> UBL XML sin firma, determinista y validado contra el XSD oficial.
 - [x] Validación XSD local con artefactos oficiales descargados.
 - [ ] Validaciones adicionales documentadas.

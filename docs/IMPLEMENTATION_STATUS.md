@@ -51,6 +51,8 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   con escala/redondeo explícitos y protección de moneda;
 - cálculo básico de importes por línea, impuestos porcentuales agrupados y
   totales de factura para precios antes de impuestos;
+- mapper del perfil básico de dominio al modelo FEV 1.9, con contexto enriquecido,
+  CUFE, código de software y mapeos tributarios explícitos;
 - UUIDv7 interno;
 - `Idempotency-Key` con conflicto al cambiar el payload;
 - request/correlation ID;
@@ -74,7 +76,7 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 
 - autenticación, scopes y resolución segura de tenant/issuer;
 - worker de construcción y envío de factura;
-- mapper del dominio genérico al modelo DIAN y ejecución Schematron/XSLT 3.0;
+- mapeo de descuentos/cargos/retenciones y ejecución Schematron/XSLT 3.0;
 - firma XAdES-EPES; el XML generado actualmente es deliberadamente unsigned;
 - normalización monetaria previa al CUFE, XAdES y cliente SOAP seguro;
 - object storage y evidencia de auditoría;
