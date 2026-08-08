@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Application\Contracts\Clock;
 use App\Application\Contracts\IdGenerator;
 use App\Application\Invoices\Contracts\InvoiceRepository;
+use App\Application\Invoices\Numbering\Contracts\DocumentSequenceReserver;
+use App\Application\Invoices\Numbering\Contracts\InvoiceNumberReserver;
 use App\Application\Invoices\Processing\Contracts\EvidenceStore;
 use App\Application\Invoices\Processing\Contracts\InvoiceProcessingRepository;
 use App\Application\Issuers\Contracts\IssuerProfileProvider;
@@ -17,6 +19,8 @@ use App\Infrastructure\Issuers\JsonFileIssuerProfileProvider;
 use App\Infrastructure\Issuers\Secrets\FileIssuerSecretProvider;
 use App\Infrastructure\Issuers\Secrets\FileSigningCredentialsProvider;
 use App\Infrastructure\Issuers\Secrets\MountedSecretFiles;
+use App\Infrastructure\Persistence\EloquentDocumentSequenceReserver;
+use App\Infrastructure\Persistence\EloquentInvoiceNumberReserver;
 use App\Infrastructure\Persistence\EloquentInvoiceProcessingRepository;
 use App\Infrastructure\Persistence\EloquentInvoiceRepository;
 use Illuminate\Support\Facades\Storage;
@@ -33,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(IdGenerator::class, UuidV7Generator::class);
         $this->app->bind(InvoiceRepository::class, EloquentInvoiceRepository::class);
         $this->app->bind(InvoiceProcessingRepository::class, EloquentInvoiceProcessingRepository::class);
+        $this->app->bind(InvoiceNumberReserver::class, EloquentInvoiceNumberReserver::class);
+        $this->app->bind(DocumentSequenceReserver::class, EloquentDocumentSequenceReserver::class);
 
         $this->app->singleton(IssuerProfileProvider::class, function (): JsonFileIssuerProfileProvider {
             $path = config('tribux.issuers_file');

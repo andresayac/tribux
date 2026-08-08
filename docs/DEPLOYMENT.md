@@ -52,6 +52,13 @@ TRIBUX_ISSUERS_FILE=/run/config/tribux/issuers.json
 El archivo **no** contiene PIN, clave técnica, certificado ni contraseña: sólo
 declara un `credential_reference` que el proveedor de secretos resuelve.
 
+`file_sequence_encoding` es obligatorio y no tiene valor por defecto. El anexo
+llama hexadecimal al consecutivo de ocho caracteres del nombre de archivo, pero
+su propio ejemplo del envío once imprime `00000011` y no `0000000B`. Las dos
+lecturas coinciden hasta nueve y divergen desde diez, así que el emisor debe
+declarar cuál usa (`decimal` o `hexadecimal`) en lugar de heredar una
+suposición. Q-008 sigue abierta.
+
 Todos los emisores del archivo se validan al cargarlo. Un error indica el
 emisor y la ruta exacta del campo; nunca imprime el contenido del archivo, que
 sí contiene datos del contribuyente.

@@ -14,6 +14,7 @@ use Tribux\Dian\Documents\Fev19\Invoice\InvoiceAddress;
 use Tribux\Dian\Documents\Fev19\Invoice\InvoiceControl;
 use Tribux\Dian\Documents\Fev19\Invoice\InvoiceParty;
 use Tribux\Dian\Documents\Fev19\Invoice\InvoiceTaxSchemeMapping;
+use Tribux\Dian\Submission\Fev19\Fev19SequenceEncoding;
 
 /**
  * Turns a plain configuration array into a validated issuer profile.
@@ -46,6 +47,7 @@ final readonly class IssuerProfileFactory
             allowedUnitCodes: $this->unitCodes($data),
             calculationPolicy: $this->calculationPolicy($this->object($data, 'calculation')),
             timezone: $this->timezone($data),
+            fileSequenceEncoding: $this->fileSequenceEncoding($data),
             credentialReference: $this->string($data, 'credential_reference'),
             testSetId: $this->nullableString($data, 'test_set_id'),
         );
@@ -59,6 +61,24 @@ final readonly class IssuerProfileFactory
         return DianEnvironment::tryFrom($value) ?? throw new InvalidArgumentException(sprintf(
             'environment must be one of "%s", got "%s".',
             implode('", "', array_column(DianEnvironment::cases(), 'value')),
+            $value,
+        ));
+    }
+
+    /**
+     * Required and without a default: Q-008 leaves the annex text and its own
+     * example disagreeing from the tenth submission onwards, so the issuer must
+     * state which reading it uses instead of inheriting a guess.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function fileSequenceEncoding(array $data): Fev19SequenceEncoding
+    {
+        $value = $this->string($data, 'file_sequence_encoding');
+
+        return Fev19SequenceEncoding::tryFrom($value) ?? throw new InvalidArgumentException(sprintf(
+            'file_sequence_encoding must be one of "%s", got "%s".',
+            implode('", "', array_column(Fev19SequenceEncoding::cases(), 'value')),
             $value,
         ));
     }

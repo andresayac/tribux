@@ -37,6 +37,9 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Perfiles de emisor versionados detrás de un puerto, cargados desde un archivo JSON montado, con validación por campo y ejemplo sintético publicable.
 - Proveedores de secretos separados para PIN/clave técnica y credenciales de firma, sobre montajes de un secreto por archivo, con secretos no serializables.
 - Almacenamiento de evidencia detrás de un puerto, con referencia derivada del digest, disco configurable y almacenamiento opcional del request SOAP.
+- Modelo de autorización de numeración en el core, con rango, vigencia por día calendario y número reservado.
+- Codificación explícita del consecutivo de nombre FEV 1.9 (`decimal` o `hexadecimal`), sin valor por defecto mientras Q-008 siga abierta.
+- Reserva atómica de números de factura y de secuencias anuales XML/ZIP mediante libros de asientos con índices únicos, idempotente por factura y por dueño.
 
 ### Changed
 

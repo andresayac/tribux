@@ -12,6 +12,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Tribux\Core\Decimal\DecimalRoundingMode;
 use Tribux\Dian\DianEnvironment;
+use Tribux\Dian\Submission\Fev19\Fev19SequenceEncoding;
 
 final class IssuerProfileTest extends TestCase
 {
@@ -44,6 +45,7 @@ final class IssuerProfileTest extends TestCase
         self::assertSame(2, $profile->calculationPolicy->moneyScale);
         self::assertSame(DecimalRoundingMode::HalfUp, $profile->calculationPolicy->roundingMode);
         self::assertSame('habilitation-primary', $profile->credentialReference);
+        self::assertSame(Fev19SequenceEncoding::Decimal, $profile->fileSequenceEncoding);
         self::assertTrue($profile->allowsUnitCode('94'));
         self::assertFalse($profile->allowsUnitCode('EA'));
         self::assertSame('VAT', $profile->taxMappings[0]->coreTaxType);
@@ -171,6 +173,30 @@ final class IssuerProfileTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Duplicate issuer tax mapping for core type VAT');
+
+        (new IssuerProfileFactory)->fromArray('issuer_demo', $data['issuer_demo']);
+    }
+
+    public function test_the_file_sequence_encoding_must_be_stated_not_inherited(): void
+    {
+        // Q-008 leaves the annex and its own example disagreeing, so there is
+        // deliberately no default to fall back on.
+        $data = $this->exampleData();
+        unset($data['issuer_demo']['file_sequence_encoding']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('file_sequence_encoding must be a string');
+
+        (new IssuerProfileFactory)->fromArray('issuer_demo', $data['issuer_demo']);
+    }
+
+    public function test_it_rejects_an_unknown_file_sequence_encoding(): void
+    {
+        $data = $this->exampleData();
+        $data['issuer_demo']['file_sequence_encoding'] = 'octal';
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('file_sequence_encoding must be one of');
 
         (new IssuerProfileFactory)->fromArray('issuer_demo', $data['issuer_demo']);
     }

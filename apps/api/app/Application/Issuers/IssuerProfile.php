@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Application\Issuers;
 
+use DateTimeImmutable;
 use DateTimeZone;
 use InvalidArgumentException;
 use Tribux\Core\Invoice\Calculation\InvoiceCalculationPolicy;
+use Tribux\Core\Numbering\NumberingAuthorization;
 use Tribux\Dian\DianEnvironment;
 use Tribux\Dian\Documents\Fev19\Invoice\InvoiceControl;
 use Tribux\Dian\Documents\Fev19\Invoice\InvoiceParty;
 use Tribux\Dian\Documents\Fev19\Invoice\InvoiceTaxSchemeMapping;
 use Tribux\Dian\Documents\Fev19\Support\Fev19Value;
+use Tribux\Dian\Submission\Fev19\Fev19SequenceEncoding;
 
 /**
  * Everything Tribux needs to build a FEV 1.9 document for one issuer, minus the
@@ -31,6 +34,9 @@ final readonly class IssuerProfile
     /** @var non-empty-list<string> */
     public array $allowedUnitCodes;
 
+    /** The authorized numbering range, derived from the DIAN control block. */
+    public NumberingAuthorization $numbering;
+
     /**
      * @param  list<InvoiceTaxSchemeMapping>  $taxMappings
      * @param  list<string>  $allowedUnitCodes
@@ -48,6 +54,7 @@ final readonly class IssuerProfile
         array $allowedUnitCodes,
         public InvoiceCalculationPolicy $calculationPolicy,
         public DateTimeZone $timezone,
+        public Fev19SequenceEncoding $fileSequenceEncoding,
         public string $credentialReference,
         public ?string $testSetId = null,
     ) {
@@ -103,6 +110,23 @@ final readonly class IssuerProfile
 
         $this->taxMappings = $taxMappings;
         $this->allowedUnitCodes = array_values(array_unique($allowedUnitCodes));
+
+        // Built here so an unusable range fails when the configuration loads,
+        // not halfway through a submission.
+        $this->numbering = new NumberingAuthorization(
+            reference: $control->authorization,
+            prefix: $control->prefix,
+            from: (int) $control->from,
+            to: (int) $control->to,
+            validFrom: new DateTimeImmutable($control->authorizationStartDate, $timezone),
+            validTo: new DateTimeImmutable($control->authorizationEndDate, $timezone),
+        );
+    }
+
+    /** The issue moment expressed in the issuer time zone, as numbering expects. */
+    public function localise(DateTimeImmutable $moment): DateTimeImmutable
+    {
+        return $moment->setTimezone($this->timezone);
     }
 
     public function allowsUnitCode(string $unitCode): bool

@@ -4,6 +4,7 @@
     "customization_id": "05",
     "invoice_type_code": "01",
     "timezone": "America/Bogota",
+    "file_sequence_encoding": "decimal",
     "credential_reference": "habilitation-primary",
     "test_set_id": "00000000-0000-4000-8000-000000000002",
     "software": {
