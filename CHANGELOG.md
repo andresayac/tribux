@@ -15,3 +15,5 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Cálculo CUFE-SHA384 con fixtures oficiales y perfiles versionados de ambiente/endpoints SOAP.
 - Política de firma DIAN v2 y roles XAdES registrados con hashes verificables.
 - Descubrimiento de artefactos FEV 1.9, extracción segura y validación XSD local estructurada.
+- Modelo de factura FEV 1.9 y generación UBL 2.1 unsigned validada contra el XSD oficial.
+- Código de seguridad de software SHA-384 y URL QR DIAN diferenciada por ambiente.

@@ -1,0 +1,127 @@
+{
+  "metadata": {
+    "fixture_origin": "Tribux-authored; synthetic identifiers and amounts",
+    "specification": "DIAN Factura Electronica de Venta 1.9",
+    "official_annex_sha256": "1b4022ac112232cd525a455432b2bdfc977d2edcf14c1c7aa26f8ba93fe47ded",
+    "official_toolbox_sha256": "2d6002d0a446ed9016ceb584cd18ae9b45ee532eb49d45cd999610d01b7266b3",
+    "references": [
+      "Anexo Tecnico FEV 1.9, document model and sections 11.7.1 and 11.8",
+      "Caja FE V19 (v2026), XSD/maindoc/UBL-Invoice-2.1.xsd",
+      "Caja FE V19 (v2026), Ejemplificaciones/XMLs de ejemplo/Generica.xml"
+    ],
+    "compliance_note": "Local structural fixture only; it has not been accepted by DIAN habilitation."
+  },
+  "environment": "habilitation",
+  "control": {
+    "authorization": "18760000001",
+    "authorization_start_date": "2026-01-01",
+    "authorization_end_date": "2027-12-31",
+    "prefix": "SETP",
+    "from": "1",
+    "to": "5000000"
+  },
+  "software": {
+    "tax_id": "900123456",
+    "verification_digit": "8",
+    "identification_scheme_name": "31",
+    "software_id": "00000000-0000-4000-8000-000000000001",
+    "fixture_pin": "12345",
+    "security_code": "d57afa74725d6766c300677799962d0fec2ef422ac71733dd74a4884e02d0ab8cff8451726e5020450265d049dd6a6ba"
+  },
+  "customization_id": "05",
+  "invoice_number": "SETP1",
+  "cufe": "a4fc014b42bb99dfe64c46aa21eb319800ddbe8e75d7ad94fb9f128ec6f3151c6e832c37bfe42240b930dc41b66cc61d",
+  "issue_date": "2026-08-08",
+  "issue_time": "10:30:00-05:00",
+  "invoice_type_code": "01",
+  "currency": "COP",
+  "supplier": {
+    "account_type_code": "1",
+    "name": "Proveedor Fixture SAS",
+    "identification": "900123456",
+    "verification_digit": "8",
+    "identification_scheme_name": "31",
+    "tax_level_code": "O-48",
+    "tax_level_list_name": "48",
+    "tax_scheme_id": "01",
+    "tax_scheme_name": "IVA",
+    "registration_prefix": "SETP",
+    "telephone": "6015550101",
+    "email": "facturacion@example.test",
+    "address": {
+      "municipality_code": "11001",
+      "city_name": "Bogotá, D.C.",
+      "department_name": "Bogotá",
+      "department_code": "11",
+      "line": "Calle 1 # 2-03",
+      "country_code": "CO",
+      "country_name": "Colombia",
+      "postal_zone": "110111"
+    }
+  },
+  "customer": {
+    "account_type_code": "1",
+    "name": "Cliente Fixture SAS",
+    "identification": "800123456",
+    "verification_digit": "5",
+    "identification_scheme_name": "31",
+    "tax_level_code": "R-99-PN",
+    "tax_level_list_name": "48",
+    "tax_scheme_id": "01",
+    "tax_scheme_name": "IVA",
+    "registration_prefix": null,
+    "telephone": null,
+    "email": "compras@example.test",
+    "address": {
+      "municipality_code": "05001",
+      "city_name": "Medellín",
+      "department_name": "Antioquia",
+      "department_code": "05",
+      "line": "Carrera 4 # 5-06",
+      "country_code": "CO",
+      "country_name": "Colombia",
+      "postal_zone": "050021"
+    }
+  },
+  "payment": {
+    "id": "1",
+    "means_code": "10",
+    "due_date": "2026-08-08"
+  },
+  "taxes": [
+    {
+      "taxable_amount": "100000.00",
+      "tax_amount": "19000.00",
+      "percent": "19.00",
+      "scheme_id": "01",
+      "scheme_name": "IVA"
+    }
+  ],
+  "totals": {
+    "line_extension_amount": "100000.00",
+    "tax_exclusive_amount": "100000.00",
+    "tax_inclusive_amount": "119000.00",
+    "payable_amount": "119000.00"
+  },
+  "lines": [
+    {
+      "id": "1",
+      "quantity": "1.00",
+      "unit_code": "94",
+      "line_extension_amount": "100000.00",
+      "description": "Servicio & soporte <mensual>",
+      "price_amount": "100000.00",
+      "base_quantity": "1.00",
+      "free_of_charge": false,
+      "taxes": [
+        {
+          "taxable_amount": "100000.00",
+          "tax_amount": "19000.00",
+          "percent": "19.00",
+          "scheme_id": "01",
+          "scheme_name": "IVA"
+        }
+      ]
+    }
+  ]
+}

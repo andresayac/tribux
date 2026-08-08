@@ -2,8 +2,8 @@
 
 **Corte de verificación:** 2026-08-08
 
-**Alcance:** primera factura de venta en habilitación; no cubre todavía una
-implementación completa de firma, XML ni transporte.
+**Alcance:** primera factura de venta en habilitación; no cubre todavía firma,
+Schematron, envío SOAP ni aceptación real en DIAN.
 
 ## Autoridad y versión
 
@@ -44,6 +44,21 @@ Schematron `DIAN-UBL21-model.sch` declara `queryBinding="xslt3"` y su XSL
 compilado usa XSLT 3.0: la extensión XSL de PHP usa libxslt 1.x y no es un motor
 compatible. Schematron permanece pendiente hasta integrar y fijar un runtime
 XSLT 3.0 reproducible.
+
+## Primer UBL de factura
+
+`Documents/Fev19/Invoice` define un modelo DIAN versionado separado del dominio
+genérico y genera un UBL 2.1 determinista con la primera
+`ext:UBLExtension`/`sts:DianExtensions`. Incluye control de numeración, proveedor
+de software, código de seguridad SHA-384, proveedor de autorización, URL QR,
+terceros, medio de pago, impuestos, totales y líneas con precio.
+
+El fixture `minimal-priced-line.json` es sintético y trazable; no contiene
+credenciales ni pretende ser un documento aceptado por la DIAN. El XML resultante
+pasó localmente `UBL-Invoice-2.1.xsd` de la caja FEV 1.9 verificada. El generador
+no añade una firma vacía: la segunda extensión se incorporará únicamente cuando
+el firmador XAdES-EPES exista. Pasar XSD no implica pasar Schematron ni
+habilitación.
 
 ## Perfil de servicio observado
 

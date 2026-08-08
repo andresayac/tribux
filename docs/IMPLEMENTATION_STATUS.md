@@ -28,6 +28,8 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 | Dominio PHP puro | `packages/core/src` |
 | Puerto de transporte DIAN | `packages/dian/src/Contracts/DianGateway.php` |
 | CUFE FEV 1.9 | `packages/dian/src/Cufe` |
+| Modelo y UBL de factura FEV 1.9 | `packages/dian/src/Documents/Fev19/Invoice` |
+| Código de software y URL QR DIAN | `packages/dian/src/Software` y `packages/dian/src/Qr` |
 | Perfil de endpoints/operaciones | `packages/dian/src/Soap` |
 | Metadatos de política de firma | `packages/dian/src/Signing` |
 | Descubrimiento/validación XSD | `packages/dian/src/Artifacts` y `packages/dian/src/Validation` |
@@ -58,12 +60,18 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
 - manifiesto reproducible con hashes de anexo, caja, política y WSDL oficiales;
 - política de firma DIAN v2 verificada por SHA-256/SHA-384 y roles tipados;
 - extracción segura de la caja y validación XSD con errores libxml estructurados.
+- modelo de factura DIAN FEV 1.9 separado del dominio genérico;
+- generación UBL 2.1 determinista sin firma, con `sts:DianExtensions`, código de
+  seguridad del software y URL QR por ambiente;
+- fixture sintético trazable y prueba local satisfactoria contra el XSD
+  `UBL-Invoice-2.1.xsd` de la caja oficial FEV 1.9.
 
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
 - worker de construcción y envío de factura;
-- ejecución Schematron/XSLT 3.0 y modelo UBL FEV 1.9;
+- mapper del dominio genérico al modelo DIAN y ejecución Schematron/XSLT 3.0;
+- firma XAdES-EPES; el XML generado actualmente es deliberadamente unsigned;
 - normalización monetaria previa al CUFE, XAdES y cliente SOAP seguro;
 - object storage y evidencia de auditoría;
 - pruebas en ambiente DIAN de habilitación;
