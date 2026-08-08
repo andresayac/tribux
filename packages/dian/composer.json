@@ -4,6 +4,7 @@
   "type": "library",
   "license": "Apache-2.0",
   "require": {
+    "ext-curl": "*",
     "ext-dom": "*",
     "ext-libxml": "*",
     "ext-openssl": "*",

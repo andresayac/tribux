@@ -78,13 +78,15 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   política v2 y validación criptográfica/XSD con certificados efímeros;
 - construcción SOAP 1.2 de `SendTestSetAsync` con WS-Addressing, Timestamp,
   BinarySecurityToken y firma RSA-SHA256 del header `To`;
+- transporte cURL HTTPS con verificación TLS, timeouts explícitos, límite de
+  respuesta, cero redirects/retries implícitos y errores estructurados;
 
 ## No implementado todavía
 
 - autenticación, scopes y resolución segura de tenant/issuer;
 - worker de construcción y envío de factura;
 - mapeo de descuentos/cargos/retenciones y cierre de hallazgos Schematron;
-- transporte HTTP del mensaje SOAP, timeouts y parsing de respuestas/faults;
+- parsing y normalización de respuestas/faults SOAP DIAN;
 - normalización monetaria de descuentos/cargos/retenciones;
 - object storage y evidencia de auditoría;
 - pruebas en ambiente DIAN de habilitación;

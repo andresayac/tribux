@@ -87,6 +87,13 @@ directa a `BinarySecurityToken` mostrada por la guía histórica solo se activa 
 forma explícita. Ninguno de los dos modos se considera aceptado hasta probarlo en
 habilitación.
 
+`Soap/Transport/CurlDianSoapTransport` envía ese mensaje por HTTPS sin
+reformatearlo. Verifica certificado/hostname, exige TLS 1.2 como mínimo, no sigue
+redirects y requiere timeouts y límite de respuesta explícitos o sus defaults
+seguros. No hace retries: después de un timeout no se puede asumir que DIAN no
+recibió el documento. Los errores de cURL conservan código, mensaje original y
+categoría normalizada; el parser de respuestas SOAP es el siguiente corte.
+
 `Documents/Fev19/Invoice/UnsignedInvoiceXmlGenerator` produce XML determinista
 sin firma con `sts:DianExtensions`. Su contrato exige que numeración, software, CUFE,
 terceros, impuestos y totales ya estén normalizados; no infiere reglas fiscales.

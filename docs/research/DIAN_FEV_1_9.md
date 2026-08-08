@@ -100,8 +100,16 @@ Q-010 hasta observar una respuesta del ambiente de habilitación.
 referencia. El default sigue el WSDL (`ThumbprintSHA1`); el modo de referencia
 directa al `BinarySecurityToken` exige selección explícita. La prueba vuelve a
 cargar el XML, verifica la firma RSA y el digest de `To`, además del body y
-Content-Type de `SendTestSetAsync`. Todavía no existe transporte HTTP ni se afirma
-aceptación remota.
+Content-Type de `SendTestSetAsync`.
+
+`CurlDianSoapTransport` envía el mensaje sin modificarlo, restringe el protocolo
+a HTTPS/TLS 1.2 o superior, verifica CA y hostname, no sigue redirects, separa
+timeout de conexión y total, y limita bytes de respuesta. Los fallos conservan
+código/mensaje cURL y una categoría normalizada, pero no se reintentan
+automáticamente porque un timeout de envío puede tener resultado remoto ambiguo.
+La integración se prueba contra un servidor TLS local con CA, certificado y clave
+efímeros. Falta parsear respuestas/faults y probar el servicio de habilitación;
+por eso no se afirma aceptación remota.
 
 ## Operaciones del primer corte
 

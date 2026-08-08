@@ -24,3 +24,4 @@ Todos los cambios notables se documentarán aquí siguiendo Keep a Changelog y S
 - Validador Schematron XSLT 3.0 con SaxonJ-HE reproducible y mensajes DIAN estructurados.
 - Firmador XAdES-EPES FEV 1.9 con credenciales PEM/PKCS#12, política v2 y pruebas criptográficas/XSD sin claves versionadas.
 - Constructor SOAP 1.2 para `SendTestSetAsync` con WS-Addressing, WS-Security X.509 y firma verificable del header `To`.
+- Transporte cURL DIAN sobre TLS verificado, con timeouts, límite de respuesta y fallos estructurados sin retries implícitos.

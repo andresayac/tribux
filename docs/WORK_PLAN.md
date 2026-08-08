@@ -73,8 +73,8 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 
 ### 1.5 Transporte DIAN
 
-- [ ] Cliente SOAP aislado.
-- [ ] Timeouts explícitos.
+- [x] Cliente SOAP aislado (envelope WS-Security + transporte cURL; parser DIAN pendiente).
+- [x] Timeouts explícitos de conexión y solicitud.
 - [ ] Retries solo para fallos seguros/reintentables.
 - [ ] Circuit breaker opcional, medido antes de introducirlo.
 - [ ] Normalización de respuestas.

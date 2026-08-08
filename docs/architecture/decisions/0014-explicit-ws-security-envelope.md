@@ -28,8 +28,8 @@ explícita mientras Q-010 siga abierta; no se selecciona silenciosamente.
 - el XML firmado puede verificarse sin conectarse a DIAN;
 - el transporte deberá enviar el XML sin reformatearlo y usar el Content-Type
   SOAP 1.2 generado;
-- los timeouts, errores HTTP, SOAP Faults y respuestas DIAN pertenecen al próximo
-  adaptador;
+- los timeouts y errores HTTP pertenecen al transporte cURL separado; SOAP Faults
+  y respuestas DIAN pertenecen al parser posterior;
 - solo una prueba en habilitación resolverá Q-010 y permitirá retirar el modo que
   no corresponda.
 
