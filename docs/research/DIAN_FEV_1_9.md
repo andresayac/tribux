@@ -190,8 +190,18 @@ Fuente: Anexo Técnico FEV 1.9, secciones 6.5.7 y 6.5.8, páginas 303-305.
 - síncrono: exactamente un documento XML;
 - asíncrono: menos de 51 documentos, combinables según el anexo.
 
-Estas reglas permanecen en estado `research` hasta añadir generador de nombres,
-límites, fixtures positivos/negativos y pruebas.
+`Fev19FileNameGenerator` implementa la estructura y el relleno, mientras
+`Fev19FileSequence` exige el token exacto `00000001`..`FFFFFFFF` en mayúsculas.
+No convierte un ordinal ni incrementa el token debido a Q-008. El fixture
+`submission/naming.json` conserva tanto el literal oficial `00000011` como la
+representación hexadecimal de once `0000000B`, tratándolos como entradas
+distintas y sin declarar cuál debe generar un contador.
+
+`Fev19ZipPackageBuilder` crea paquetes reproducibles, ordena las entradas, fija
+su timestamp ZIP, evita nombres duplicados o con rutas y exige que ZIP/documentos
+compartan NIT, código de proveedor y año. Aplica exactamente un XML para modo
+síncrono y de uno a 50 para modo asíncrono. El constructor empaqueta XML ya
+construidos; la validación XSD/Schematron sigue siendo una etapa separada.
 
 ## AttachedDocument
 
@@ -247,8 +257,10 @@ compatibilidad operativa o aceptación.
 
 Las secciones 6.5.7/6.5.8 llaman hexadecimal al consecutivo de ocho caracteres,
 pero el ejemplo del “décimo primer” envío termina en `00000011`; una conversión
-decimal-a-hexadecimal produciría `0000000B`. No se implementará el generador
-hasta contrastar esta diferencia con la validación real o una aclaración oficial.
+decimal-a-hexadecimal produciría `0000000B`. El generador implementado no resuelve
+esa diferencia: recibe un token ya codificado y valida únicamente su forma y
+rango. La estrategia de incremento seguirá pendiente hasta contrastarla con una
+prueba real o una aclaración oficial.
 
 ## Fuentes oficiales consultadas
 

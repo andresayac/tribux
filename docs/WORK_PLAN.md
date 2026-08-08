@@ -69,6 +69,7 @@ Este plan está pensado para ser ejecutado por humanos y agentes IA en PRs peque
 - [ ] Validaciones adicionales documentadas.
 - [x] CUFE con fixtures oficiales positivo/negativo.
 - [x] Firma digital local con certificado RSA efímero y validación XSD oficial.
+- [x] Naming XML/ZIP FEV 1.9 con secuencia explícita y paquetes reproducibles.
 - [ ] Firma y envío con certificado real de habilitación.
 
 ### 1.5 Transporte DIAN

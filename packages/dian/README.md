@@ -79,6 +79,35 @@ criptográfico genera certificado y clave efímeros en cada ejecución; no hay
 material privado versionado. La firma pasa localmente el XSD oficial, pero falta
 probarla con un certificado real de habilitación y obtener respuesta DIAN.
 
+`Submission/Fev19` compone los nombres y el ZIP de transporte sin acoplarlos a
+Laravel ni a almacenamiento permanente:
+
+```php
+use Tribux\Dian\Documents\DianDocumentType;
+use Tribux\Dian\Submission\Fev19\Fev19FileNameGenerator;
+use Tribux\Dian\Submission\Fev19\Fev19FileSequence;
+use Tribux\Dian\Submission\Fev19\Fev19SubmissionDocument;
+use Tribux\Dian\Submission\Fev19\Fev19SubmissionMode;
+use Tribux\Dian\Submission\Fev19\Fev19ZipPackageBuilder;
+
+$names = new Fev19FileNameGenerator('800197268', '000', 2026);
+$documentName = $names->documentName(
+    DianDocumentType::Invoice,
+    new Fev19FileSequence('00000001'),
+);
+$zipName = $names->zipName(new Fev19FileSequence('00000001'));
+
+$package = (new Fev19ZipPackageBuilder())->build(
+    $zipName,
+    Fev19SubmissionMode::Synchronous,
+    new Fev19SubmissionDocument(DianDocumentType::Invoice, $documentName, $signedXml),
+);
+```
+
+La secuencia se recibe ya codificada en ocho caracteres hexadecimales. Tribux no
+la incrementa porque Q-008 documenta una contradicción en el ejemplo oficial.
+El empaquetador no reemplaza la validación XSD/Schematron previa.
+
 `Soap/WsSecuritySoapEnvelopeBuilder` prepara un mensaje SOAP 1.2 firmado para el
 WCF de DIAN sin realizar I/O. `Requests/SendTestSetAsyncRequest` encapsula el ZIP
 en Base64 y `DianSoapMessage` expone el Content-Type con su action. El default

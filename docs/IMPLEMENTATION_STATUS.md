@@ -86,6 +86,8 @@ También están disponibles `GET /v1/invoices/{id}`, `GET /v1/invoices/{id}/stat
   parser mediante dependencias reemplazables;
 - cliente `DianStatusClient` y parser de `DianResponse` para `GetStatus`, con
   errores, campos opcionales, Base64 original/decodificado, HTTP y XML crudo;
+- generador de nombres XML/ZIP FEV 1.9 con token hexadecimal explícito y
+  empaquetado reproducible para cardinalidad síncrona/asíncrona;
 
 ## No implementado todavía
 
@@ -103,7 +105,7 @@ La API actual es solo para desarrollo local. No debe exponerse públicamente has
 
 ## Próximo corte recomendado
 
-Implementar naming y empaquetado ZIP FEV 1.9 con fixtures trazables, conectar el
-worker de factura al pipeline de construcción/firma/envío y preparar un script
-reproducible para el primer envío controlado en habilitación. En paralelo,
-completar descuentos, cargos y retenciones del dominio.
+Implementar `GetStatusZip`, conectar el worker de factura al pipeline de
+construcción/firma/empaquetado/envío y preparar un script reproducible para el
+primer envío controlado en habilitación. En paralelo, completar descuentos,
+cargos y retenciones del dominio.

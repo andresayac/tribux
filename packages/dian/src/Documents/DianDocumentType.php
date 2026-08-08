@@ -12,6 +12,17 @@ enum DianDocumentType: string
     case DebitNote = 'debit-note';
     case Invoice = 'invoice';
 
+    public function filePrefix(): string
+    {
+        return match ($this) {
+            self::ApplicationResponse => 'ar',
+            self::AttachedDocument => 'ad',
+            self::CreditNote => 'nc',
+            self::DebitNote => 'nd',
+            self::Invoice => 'fv',
+        };
+    }
+
     public function xsdFileName(): string
     {
         return match ($this) {

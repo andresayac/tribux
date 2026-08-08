@@ -1,0 +1,17 @@
+{
+  "source": {
+    "document": "Anexo Técnico de Factura Electrónica de Venta 1.9",
+    "sha256": "1b4022ac112232cd525a455432b2bdfc977d2edcf14c1c7aa26f8ba93fe47ded",
+    "sections": ["6.5.7", "6.5.8"],
+    "pages": [303, 304, 305]
+  },
+  "issuerTaxId": "800197268",
+  "paddedIssuerTaxId": "0800197268",
+  "providerCode": "000",
+  "calendarYear": 2019,
+  "officialLiteralSequence": "00000011",
+  "hexadecimalElevenSequence": "0000000B",
+  "expectedInvoiceNameFromOfficialLiteral": "fv08001972680001900000011.xml",
+  "expectedZipNameFromOfficialLiteral": "z08001972680001900000011.zip",
+  "invalidSequences": ["00000000", "0000000b", "0000000G", "000000001"]
+}

@@ -8,6 +8,7 @@
     "ext-dom": "*",
     "ext-libxml": "*",
     "ext-openssl": "*",
+    "ext-zip": "*",
     "php": "^8.4 || ^8.5",
     "tribux/core": "dev-main"
   },
