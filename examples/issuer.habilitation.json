@@ -1,0 +1,57 @@
+{
+  "issuer_demo": {
+    "environment": "habilitation",
+    "customization_id": "05",
+    "invoice_type_code": "01",
+    "timezone": "America/Bogota",
+    "credential_reference": "habilitation-primary",
+    "test_set_id": "00000000-0000-4000-8000-000000000002",
+    "software": {
+      "tax_id": "900123456",
+      "verification_digit": "8",
+      "identification_scheme_name": "31",
+      "software_id": "00000000-0000-4000-8000-000000000001",
+      "provider_code": "001"
+    },
+    "control": {
+      "authorization": "18760000001",
+      "authorization_start_date": "2026-01-01",
+      "authorization_end_date": "2027-12-31",
+      "prefix": "SETP",
+      "from": "1",
+      "to": "5000000"
+    },
+    "supplier": {
+      "account_type_code": "1",
+      "name": "Proveedor Fixture SAS",
+      "identification": "900123456",
+      "verification_digit": "8",
+      "identification_scheme_name": "31",
+      "tax_level_code": "O-48",
+      "tax_level_list_name": "48",
+      "tax_scheme_id": "01",
+      "tax_scheme_name": "IVA",
+      "registration_prefix": "SETP",
+      "email": "fixture@example.test",
+      "address": {
+        "municipality_code": "11001",
+        "city_name": "Bogotá, D.C.",
+        "department_name": "Bogotá",
+        "department_code": "11",
+        "line": "Dirección sintética"
+      }
+    },
+    "calculation": {
+      "money_scale": 2,
+      "rounding_mode": "half_up"
+    },
+    "tax_mappings": [
+      {
+        "core_type": "VAT",
+        "dian_id": "01",
+        "dian_name": "IVA"
+      }
+    ],
+    "allowed_unit_codes": ["94"]
+  }
+}

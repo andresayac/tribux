@@ -18,3 +18,7 @@ coverage/
 storage/private/
 /var/dian/
 /var/tools/
+# Local issuer configuration and mounted secrets never belong in Git.
+/secrets/
+/issuers*.json
+/var/evidence/

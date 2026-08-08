@@ -26,7 +26,7 @@ lint:
 	composer validate --strict
 	composer --working-dir=apps/api validate --strict
 	composer lint
-	php apps/api/vendor/bin/pint --test apps/api/app apps/api/bootstrap/app.php apps/api/bootstrap/providers.php apps/api/database apps/api/routes apps/api/tests
+	php apps/api/vendor/bin/pint --test apps/api/app apps/api/bootstrap/app.php apps/api/bootstrap/providers.php apps/api/config/tribux.php apps/api/database apps/api/routes apps/api/tests
 
 openapi-lint:
 	npm run openapi:lint
